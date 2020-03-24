@@ -11,7 +11,7 @@ var flash = require('connect-flash');
 
 
 //DB 연결
-var mongoose = require('mongoose');
+var mongoose = require('monoose');
 mongoose.connect("mongodb+srv://turrymall:turrymall@cluster0-7wnzw.mongodb.net/test?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true });
 var db = mongoose.connection;
 db.once("open", function () {

@@ -1,5 +1,5 @@
 notifications:
-  slack: swcapreturnice:c6a6NDvObOVRVH4ttfBy9UNO
+  slack: swcapreturnice:SCNXdO39nRhhJ5kAVwUM3jHJ
 language: node_js
 node_js:
   - "12"

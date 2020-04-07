@@ -1,12 +1,13 @@
-var express = require('express');
-var passport = require('passport');
-//jwt 인증 
-var jwt = require('jsonwebtoken');
+var express = require('express')
+var passport = require('passport')
+// jwt 인증
+var jwt = require('jsonwebtoken')
 
-var router = express.Router();
-var User = require('mongoose').model('User');
+var router = express.Router()
 
-var LocalStrategy = require('passport-local').Strategy;
+var User = require('mongoose').model('User')
+
+var LocalStrategy = require('passport-local').Strategy
 passport.use('local-login',
   new LocalStrategy({
     usernameField: 'ID',
@@ -14,69 +15,65 @@ passport.use('local-login',
     session: true,
     passReqToCallback: true
   },
-    function (req, ID, PW, done) {
-      User.findOne({ 'ID': ID }, function (err, user) {
-        if (err) return done(err);
-        if (!user) {
-          return done(null, false);
-        }
-        if (!user.authenticate(PW)) {
-          return done(null, false);
-        }
-        return done(null, user);
-      });
+  function (req, ID, PW, done) {
+    User.findOne({ ID: ID }, function (err, user) {
+      if (err) return done(err)
+      if (!user) {
+        return done(null, false)
+      }
+      if (!user.authenticate(PW)) {
+        return done(null, false)
+      }
+      return done(null, user)
     })
-);
+  })
+)
 
 router.get('/', function (req, res, next) {
-
   // 후에 사용하게될 복호화 부분
-  var token = req.headers['x-access-token'];
+  var token = req.headers['x-access-token']
 
-  jwt.verify(token, "abcd", function (err, decoded) {
-    if (err) return res.json({ success: false, message: err });
+  jwt.verify(token, 'abcd', function (err, decoded) {
+    if (err) return res.json({ success: false, message: err })
     else {
-      return  res.json({ success: true, user:decoded.user });
+      return res.json({ success: true, user: decoded.user })
     }
-  });
-});
-
+  })
+})
 
 router.post('/', function (req, res, next) {
   if (req.body.ID.length === 0 || req.body.PW.length === 0) {
-    res.json({ success: false, message: "check input value" });
-  }
-  else {
+    res.json({ success: false, message: 'check input value' })
+  } else {
     passport.authenticate('local-login', function (err, user, info) {
-      if (err) return next(err);
-      if (!user) return res.json({ success: false, message: "login fail" });
+      if (err) return next(err)
+      if (!user) return res.json({ success: false, message: 'login fail' })
       req.logIn(user, function (err) {
-        if (err) return res.json({ success: false, message: "login fail" });
+        if (err) return res.json({ success: false, message: 'login fail' })
 
         // login 성공
         // payload -> 토큰에 들어갈정보 이것이 암호화되서 토큰에 실린다.
         var payload = {
           user: user
-        };
-        var secretOrPrivateKey = "abcd"
-        var options = { expiresIn: 60 * 60 * 24 };// 10분 동안만 로그인 유효 -> 후에 수정 
+        }
+        var secretOrPrivateKey = 'abcd'
+        var options = { expiresIn: 60 * 60 * 24 }// 10분 동안만 로그인 유효 -> 후에 수정
         jwt.sign(payload, secretOrPrivateKey, options, function (err, token) {
-          if (err) return res.json({ success: false, message: "jwt인증 토큰 생성에러" });
+          if (err) return res.json({ success: false, message: 'jwt인증 토큰 생성에러' })
 
-          return res.send({ success: true, token });
-        });
-      });
-    })(req, res, next);
+          return res.send({ success: true, token })
+        })
+      })
+    })(req, res, next)
   }
-});
+})
 
 router.get('/logout', function (req, res) {
-  req.session.destroy();
-  res.json({ success: true });
-}); // logout
+  req.session.destroy()
+  res.json({ success: true })
+}) // logout
 
-
-module.exports = router;
+module.exports = router
 
 /**
  * @swagger

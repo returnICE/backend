@@ -8,4 +8,5 @@ install:
   - npm install
 
 script:
-  - npm start
+  - npm run lint
+  - npm run build

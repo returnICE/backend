@@ -1,58 +1,54 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 
-var Reserve = require('mongoose').model('Reserve');
+var Reserve = require('mongoose').model('Reserve')
 var jwt = require('../hooks/jwt')
-
 
 // GET ALL Reserve
 router.get('/', function (req, res) {
-  var user= jwt.isAuthenticate(req)
-  Reserve.find({user_id:user._id}, function(err, data){
-    if(err) return res.json({success: false, message: err});
-    res.json({success:true, data});
+  var user = jwt.isAuthenticate(req)
+  Reserve.find({ user_id: user._id }, function (err, data) {
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true, data })
   })
-
-  });
+})
 
 // GET SINGLE Reserve
 router.get('/:id', function (req, res) {
-  Reserve.findById(req.params.id,function(err,data){
-    if(err) return res.json({success: false, message: err});
-    res.json({success:true, data: data});
+  Reserve.findById(req.params.id, function (err, data) {
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true, data: data })
   })
-});
+})
 
 // CREATE Reserve
 router.post('/', function (req, res) {
-  var user= jwt.isAuthenticate(req)
+  var user = jwt.isAuthenticate(req)
   console.log(user._id)
-  Reserve.create({...req.body,user_id:user._id}, function (err, data) {
-    if (err) return res.json({ success: false, message: err });
-    res.json({ success: true, data });
-  });
-});
+  Reserve.create({ ...req.body, user_id: user._id }, function (err, data) {
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true, data })
+  })
+})
 
 // UPDATE THE Reserve
 router.put('/:id', function (req, res) {
-  Reserve.findByIdAndUpdate(req.params.id, req.body, function(err, data){
-    if(err) return res.json({success: false, message: err});
-    res.json({success:true, result:req.body});
-  });
-});
+  Reserve.findByIdAndUpdate(req.params.id, req.body, function (err, data) {
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true, result: req.body })
+  })
+})
 
 // DELETE Reserve
 router.delete('/:id', function (req, res) {
-  Reserve.findById(req.params.id, function(err,data){
-    if(err) return res.json({success: false, message: err});
+  Reserve.findById(req.params.id, function (err, data) {
+    if (err) return res.json({ success: false, message: err })
     data.remove()
-    res.json({success:true});
-  });
-});
+    res.json({ success: true })
+  })
+})
 
-module.exports = router;
-
-
+module.exports = router
 
 /**
  * @swagger
@@ -66,11 +62,11 @@ module.exports = router;
  *       - item_id
  *       - reserveprice
  *     properties:
- *       item_id: 
+ *       item_id:
  *         type: string
  *         required: true
  *         description: 제품 아이디
- *       reserveprice: 
+ *       reserveprice:
  *         type: number
  *         required: true
  *         description: 제품 설명
@@ -157,7 +153,7 @@ module.exports = router;
  *        - "application/json"
  *        parameters:
  *        - in: path
- *          name: id 
+ *          name: id
  *          required: true
  *          schema:
  *            type: String
@@ -183,7 +179,7 @@ module.exports = router;
  *            $ref: "#/definitions/Reserve_request"
  *        parameters:
  *        - in: path
- *          name: id 
+ *          name: id
  *          required: true
  *          schema:
  *            type: String
@@ -208,7 +204,7 @@ module.exports = router;
  *        - "application/json"
  *        parameters:
  *        - in: path
- *          name: id 
+ *          name: id
  *          required: true
  *          schema:
  *            type: String
@@ -218,14 +214,13 @@ module.exports = router;
  *            description: "수정"
  *            schema:
  *              $ref: "#/definitions/Itme_response"
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
  */
 
-
- /*
+/*
   *     type: object
  *     required:
  *       - ID
@@ -235,28 +230,28 @@ module.exports = router;
  *       - phone
  *       - list
  *       - originprice
- *       - currentprice 
+ *       - currentprice
  *       - payment
  *     properties:
- *       ID: 
+ *       ID:
  *         type: string
  *         required: true
- *       createdAt: 
+ *       createdAt:
  *         type: string
  *         format: date-time
  *         required: true
- *       updatedAt: 
+ *       updatedAt:
  *         type: string
  *         format: date-time
- *       address: 
+ *       address:
  *         type: string
  *         required: true
  *         description: 배송지
- *       phone: 
+ *       phone:
  *         type: string
  *         required: true
  *         description: 배송 번호
- *       list: 
+ *       list:
  *         type: array
  *         items:
  *           type: object
@@ -266,15 +261,15 @@ module.exports = router;
  *             count:
  *               type:string
  *         description: 제품,수량
- *       originprice: 
+ *       originprice:
  *         type: number
  *         required: true
  *         description: 제품 설명
- *       currentprice: 
+ *       currentprice:
  *         type: number
  *         required: true
  *         description: 원래 가격
- *       payment: 
+ *       payment:
  *         type: boolean
  *         required: true
  *         description: 구매 여부

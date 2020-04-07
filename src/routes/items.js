@@ -1,53 +1,50 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 
-var Item = require('mongoose').model('Item');
-var mongoose = require('mongoose');
+var mongoose = require('mongoose')
+var Item = mongoose.model('Item')
 
 // GET ALL Item
 router.get('/', function (req, res) {
-  Item.find({}, function(err, item){
-    if(err) return res.json({success: false, message: err});
-    res.json({success:true, item: item});
+  Item.find({}, function (err, item) {
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true, item: item })
   })
-
-  });
+})
 
 // GET SINGLE Item
 router.get('/:id', function (req, res) {
-  Item.findById(req.params.id,function(err,item){
-    if(err) return res.json({success: false, message: err});
-    res.json({success:true, item: item});
+  Item.findById(req.params.id, function (err, item) {
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true, item: item })
   })
-});
+})
 
 // CREATE Item
 router.post('/', function (req, res) {
   Item.create(req.body, function (err, item) {
-    if (err) return res.json({ success: false, message: err });
-    res.json({ success: true });
-  });
-});
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true })
+  })
+})
 
 // UPDATE THE Item
 router.put('/:id', function (req, res) {
-  Item.findByIdAndUpdate(req.params.id, req.body, function(err, item){
-    if(err) return res.json({success: false, message: err});
-    res.json({success:true, result:req.body});
-  });
-});
+  Item.findByIdAndUpdate(req.params.id, req.body, function (err, item) {
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true, result: req.body })
+  })
+})
 
 // DELETE Item
 router.delete('/:id', function (req, res) {
-  Item.findByIdAndRemove(function(err){
-    if(err) return res.json({success: false, message: err});
-    res.json({success:true});
-  });
-});
+  Item.findByIdAndRemove(function (err) {
+    if (err) return res.json({ success: false, message: err })
+    res.json({ success: true })
+  })
+})
 
-module.exports = router;
-
-
+module.exports = router
 
 /**
  * @swagger
@@ -65,28 +62,28 @@ module.exports = router;
  *       - originprice
  *       - saleprice
  *     properties:
- *       manufactdate: 
+ *       manufactdate:
  *         type: string
  *         required: true
  *         description: 제조일자
- *       expirationdate: 
+ *       expirationdate:
  *         type: string
  *         format: date-time
  *         required: true
  *         description: 유통기한
- *       type: 
+ *       type:
  *         type: string
  *         required: true
  *         description: 제품 종류
- *       information: 
+ *       information:
  *         type: string
  *         required: true
  *         description: 제품 설명
- *       originprice: 
+ *       originprice:
  *         type: string
  *         required: true
  *         description: 원래 가격
- *       saleprice: 
+ *       saleprice:
  *         type: string
  *         required: true
  *         description: 할인 가격
@@ -100,28 +97,28 @@ module.exports = router;
  *       - originprice
  *       - saleprice
  *     properties:
- *       manufactdate: 
+ *       manufactdate:
  *         type: string
  *         required: true
  *         description: 제조일자
- *       expirationdate: 
+ *       expirationdate:
  *         type: string
  *         format: date-time
  *         required: true
  *         description: 유통기한
- *       type: 
+ *       type:
  *         type: string
  *         required: true
  *         description: 제품 종류
- *       information: 
+ *       information:
  *         type: string
  *         required: true
  *         description: 제품 설명
- *       originprice: 
+ *       originprice:
  *         type: string
  *         required: true
  *         description: 원래 가격
- *       saleprice: 
+ *       saleprice:
  *         type: string
  *         required: true
  *         description: 할인 가격
@@ -143,32 +140,32 @@ module.exports = router;
  *       - originprice
  *       - saleprice
  *     properties:
- *       _id: 
+ *       _id:
  *         type: string
  *         required: true
  *         description: 아이디
- *       manufactdate: 
+ *       manufactdate:
  *         type: string
  *         required: true
  *         description: 제조일자
- *       expirationdate: 
+ *       expirationdate:
  *         type: string
  *         format: date-time
  *         required: true
  *         description: 유통기한
- *       type: 
+ *       type:
  *         type: string
  *         required: true
  *         description: 제품 종류
- *       information: 
+ *       information:
  *         type: string
  *         required: true
  *         description: 제품 설명
- *       originprice: 
+ *       originprice:
  *         type: string
  *         required: true
  *         description: 원래 가격
- *       saleprice: 
+ *       saleprice:
  *         type: string
  *         required: true
  *         description: 할인 가격
@@ -239,7 +236,7 @@ module.exports = router;
  *        - "application/json"
  *        parameters:
  *        - in: path
- *          name: id 
+ *          name: id
  *          required: true
  *          schema:
  *            type: String
@@ -265,7 +262,7 @@ module.exports = router;
  *            $ref: "#/definitions/Item_request"
  *        parameters:
  *        - in: path
- *          name: id 
+ *          name: id
  *          required: true
  *          schema:
  *            type: String
@@ -290,7 +287,7 @@ module.exports = router;
  *        - "application/json"
  *        parameters:
  *        - in: path
- *          name: id 
+ *          name: id
  *          required: true
  *          schema:
  *            type: String
@@ -300,9 +297,8 @@ module.exports = router;
  *            description: "수정"
  *            schema:
  *              $ref: "#/definitions/Itme_response"
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
  */
-

@@ -1,5 +1,14 @@
 ﻿# node-env-init
  
+ ## 초기세팅
+ 
+ .env파일 생성
+ ```
+AWS_KEY= "AKIAQYGRQI7U5BB6KLN4";
+AWS_SECRET= "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";
+JWT_KEY='abcd'
+```
+ 
 ## 명령어 
 
 ### dev

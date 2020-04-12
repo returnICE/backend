@@ -1,3 +1,5 @@
+notifications:
+  slack: swcapreturnice:SCNXdO39nRhhJ5kAVwUM3jHJ
 language: node_js
 node_js:
   - "12"

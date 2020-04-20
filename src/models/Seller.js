@@ -53,6 +53,11 @@ module.exports = function (sequelize, DataTypes) {
     minPrice: {
       type: DataTypes.INTEGER(11),
       allowNull: true
+    },
+    contractable: {
+      type: DataTypes.INTEGER(4),
+      allowNull: false,
+      defaultValue: '0'
     }
   }, {
     tableName: 'Seller'

@@ -3,12 +3,13 @@
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define('SubMenu', {
     smId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     subId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false,
       references: {
         model: 'SubItem',
@@ -16,7 +17,7 @@ module.exports = function (sequelize, DataTypes) {
       }
     },
     menuId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false,
       references: {
         model: 'Menu',

@@ -8,8 +8,12 @@ module.exports = function (sequelize, DataTypes) {
       primaryKey: true
     },
     pw: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.STRING(512),
       allowNull: false
+    },
+    salt: {
+      type: DataTypes.STRING(64),
+      allowNull: true
     },
     name: {
       type: DataTypes.STRING(16),
@@ -25,7 +29,6 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: false
     }
   }, {
-    timestamps: false,
     tableName: 'Customer'
   })
 }

@@ -4,7 +4,11 @@
     "password": "fptdltrh",
     "database": "capstone-schema",
     "host": "returnice-db.ciyere7qfg4n.us-east-2.rds.amazonaws.com",
-    "dialect": "mysql"
+    "dialect": "mysql",
+    "define": {
+      "timestamps": false
+    }
+    
   },
   "test": {
     "username": "root",

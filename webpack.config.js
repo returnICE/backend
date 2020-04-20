@@ -3,6 +3,10 @@ const nodeExternals = require('webpack-node-externals')
 module.exports = {
   target: 'node',
   externals: [nodeExternals()],
+  resolve: {
+    modules: ['node_modules'],
+    extensions: ['.js', '.json']
+  },
 }
 
 //entry나 output을 변경하기위한 코드

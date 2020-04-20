@@ -3,9 +3,10 @@
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define('Member', {
     memberId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     enterpriseId: {
       type: DataTypes.STRING(16),

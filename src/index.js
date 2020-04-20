@@ -1,7 +1,6 @@
 var createError = require('http-errors')
 var express = require('express')
 var path = require('path')
-var bodyParser = require('body-parser')
 var session = require('express-session')
 var passport = require('passport')
 var logger = require('morgan')
@@ -14,17 +13,13 @@ var logger = require('morgan')
 // 라우팅
 var uploadRouter = require('./routes/upload')
 var homeRouter = require('./routes/home')
+var usersRouter = require('./routes/users')
 var app = express()
-
-// view engine setup
-// app.set('views', path.join(__dirname, 'views'))
-// app.set('view engine', 'jade')
 
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
-app.use(bodyParser.json())
 app.use(session({
   key: 'sid',
   secret: 'TURRYMALL',
@@ -39,39 +34,7 @@ app.use(passport.session())
 
 app.use('/', homeRouter)
 app.use('/upload', uploadRouter)
-// // Swagger setting
-// const swaggerJSDoc = require('swagger-jsdoc')
-// const swaggerUi = require('swagger-ui-express')
-// const swaggerDefinition = {
-//   info: {
-//     title: 'Turry Mall',
-//     version: '1.0.0',
-//     description: 'Capstone 쇼핑몰'
-//   },
-//   host: 'localhost:3000',
-//   basePath: '/'
-// }
-// const options = {
-//   swaggerDefinition,
-//   apis: ['./routes/index.js']
-// }
-// const swaggerSpec = swaggerJSDoc(options)
-// // Swagger setting fin
-
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
-
-// var User = require('mongoose').model('User')
-// passport.serializeUser(function (user, done) {
-//   done(null, user.id)
-// }) // session 생성 시 user개체의 id(DB의 id)를 저장
-
-// passport.deserializeUser(function (id, done) {
-//   User.findById(id, function (err, user) {
-//     done(err, user)
-//   })
-// }) // session으로부터 개체 가져올 때 id를 넘겨받아서 DB에서 user찾음
-
-// catch 404 and forward to error handler
+app.use('/users', usersRouter)
 app.use(function (req, res, next) {
   next(createError(404))
 })
@@ -84,9 +47,8 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500)
-  res.render('error')
+  res.render(err)
+  next()
 })
-app.listen(3000, () => console.log('🚀 Server running on http://localhost:3000 🚀')
-)
 
 module.exports = app

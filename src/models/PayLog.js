@@ -3,9 +3,10 @@
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define('PayLog', {
     LogId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     customerId: {
       type: DataTypes.STRING(16),
@@ -20,7 +21,7 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: false
     },
     subId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false
     }
   }, {

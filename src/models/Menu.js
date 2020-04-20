@@ -3,9 +3,10 @@
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define('Menu', {
     menuId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     },
     sellerId: {
       type: DataTypes.STRING(16),
@@ -15,9 +16,9 @@ module.exports = function (sequelize, DataTypes) {
         key: 'sellerId'
       }
     },
-    menuNaem: {
+    menuName: {
       type: DataTypes.STRING(16),
-      allowNull: false
+      allowNull: true
     },
     price: {
       type: DataTypes.INTEGER(11),

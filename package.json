@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js --exec babel-node",
+    "dev": "nodemon bin/www --exec babel-node",
     "build": "webpack --mode development",
     "start": "node dist/main.js",
     "lint": "eslint ./src/**/*.js"

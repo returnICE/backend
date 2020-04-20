@@ -11,7 +11,7 @@ module.exports = function (sequelize, DataTypes) {
       }
     },
     subId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false,
       references: {
         model: 'SubItem',
@@ -45,9 +45,10 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: '0'
     },
     subedId: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.INTEGER(11),
       allowNull: false,
-      primaryKey: true
+      primaryKey: true,
+      autoIncrement: true
     }
   }, {
     tableName: 'SubedItem'

@@ -1,3 +1,4 @@
+// sequelize-auto -o "./src/models" -d capstone-schema -h returnice-db.ciyere7qfg4n.us-east-2.rds.amazonaws.com -u capstone14 -p 3306 -x fptdltrh -e mysql
 var fs = require('fs')
 const path = require('path')
 const Sequelize = require('sequelize')

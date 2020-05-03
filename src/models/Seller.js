@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function (sequelize, DataTypes) {
+module.exports = function(sequelize, DataTypes) {
   return sequelize.define('Seller', {
     sellerId: {
       type: DataTypes.STRING(16),
@@ -8,8 +8,12 @@ module.exports = function (sequelize, DataTypes) {
       primaryKey: true
     },
     pw: {
-      type: DataTypes.STRING(16),
+      type: DataTypes.STRING(512),
       allowNull: false
+    },
+    salt: {
+      type: DataTypes.STRING(64),
+      allowNull: true
     },
     name: {
       type: DataTypes.STRING(16),
@@ -31,11 +35,11 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: '0'
     },
     lat: {
-      type: DataTypes.FLOAT,
+      type: "DOUBLE",
       allowNull: true
     },
     lon: {
-      type: DataTypes.FLOAT,
+      type: "DOUBLE",
       allowNull: true
     },
     imgURL: {
@@ -61,5 +65,5 @@ module.exports = function (sequelize, DataTypes) {
     }
   }, {
     tableName: 'Seller'
-  })
-}
+  });
+};

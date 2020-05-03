@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function (sequelize, DataTypes) {
+module.exports = function(sequelize, DataTypes) {
   return sequelize.define('SubedItem', {
     customerId: {
       type: DataTypes.STRING(16),
@@ -52,5 +52,5 @@ module.exports = function (sequelize, DataTypes) {
     }
   }, {
     tableName: 'SubedItem'
-  })
-}
+  });
+};

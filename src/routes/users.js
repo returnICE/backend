@@ -4,6 +4,7 @@ var async = require('async')
 var crypto = require('crypto')
 var jwt = require('jsonwebtoken')
 var Customer = require('../models').Customer
+var subedItem = require('../models').subedItem
 
 router.post('/', checkUserRegValidation, function (req, res, next) {
   var salt = Math.round((new Date().valueOf() * Math.random()))
@@ -21,12 +22,14 @@ router.post('/login', async (req, res, next) => {
       where: { customerId: req.body.customerId }
     }).then((data) => {
       if (data && data.pw === crypto.createHash('sha512').update(req.body.pw + data.salt).digest('hex')) {
+        console.log(data.customerId)
         var payload = {
-          user: data
+          user: { customerId: data.customerId }
         }
-        var options = { expiresIn: 60 * 60 * 24 }// 10분 동안만 로그인 유효 -> 후에 수정
-        jwt.sign(payload, 'abcd', options, function (err, token) {
-          if (err) return res.json({ success: false, message: 'jwt인증 토큰 생성에러' })
+        var options = { expiresIn: 60 * 60 * 24 }
+        console.log(process.env.JWT_KEY)
+        jwt.sign(payload, process.env.JWT_KEY, options, function (err, token) {
+          if (err) return res.json({ success: false, err: err })
           return res.send({ success: true, data: token })
         })
       } else {
@@ -38,6 +41,7 @@ router.post('/login', async (req, res, next) => {
   }
 })
 
+// 소비자 정보 조회
 router.get('/myinfo', function (req, res) {
   var token = req.headers['x-access-token']
   return jwt.verify(token, process.env.jwtKey, function (err, decoded) {
@@ -46,35 +50,46 @@ router.get('/myinfo', function (req, res) {
       return res.json({ succes: true, data: decoded })
     }
   })
-}) // ID 중복체크
+})
 
-router.put('/myinfo', isLoggedIn, checkUserRegValidation, function (req, res) {
-  Customer.findById(req.params.id, req.body, function (err, user) {
-    if (err) return res.json({ success: false, message: err })
-    if (user.authenticate(req.body.PW)) {
-      if (req.body.newPW) {
-        req.body.PW = user.hash(req.body.newPW)
-      } else {
-        delete req.body.PW
-      }
-      Customer.findByIdAndUpdate(req.params.id, req.body, function (err, user) {
-        if (err) return res.json({ success: false, message: err })
-        res.json({ success: true, result: req.body })
-      })
-    } else {
-      res.json({ success: false, message: 'Check ID or Password' })
-    }
+// 소비자 정보 수정 -> 비밀번호변경
+router.put('/myinfo', function (req, res) {
+  var token = req.headers['x-access-token']
+  const temp = jwt.verify(token, process.env.jwtKey, function (err, decoded) {
+    return err || decoded
   })
-}) // user 정보 수정
 
-router.delete('/myinfo', checkId, function (req, res) {
-  console.log('test log1')
+  temp.id && Customer.findById(temp.id, function (err, user) {
+    if (err) return res.json({ success: false, message: err })
+
+    var salt = Math.round((new Date().valueOf() * Math.random()))
+    var pw = crypto.createHash('sha512').update(req.body.pw + salt).digest('hex')
+
+    Customer.findByIdAndUpdate(req.params.id, { pw, salt }, function (err) {
+      if (err) return res.json({ success: false, message: err })
+      res.json({ success: true, result: req.body })
+    })
+  })
+})
+
+// 소비자 정보 삭제
+router.delete('/myinfo', function (req, res) {
   res.json({ success: true })
-}) // ID 중복체크
+})
 
+// 소비자 아이디 중복 확인
 router.post('/checkid', checkId, function (req, res) {
   res.json({ success: true })
-}) // ID 중복체크
+})
+
+// 구독중인 음식점 조회 - 개발중
+router.get('/sub', function (req, res) {
+  Customer.findAll({ include: [{ model: subedItem, attributes: ['subid'] }] }, req.params.id, function (err) {
+    if (err) return res.json({ success: false, message: err })
+    else return res.json({ succes: true })
+  })
+})
+
 module.exports = router
 
 function checkUserRegValidation (req, res, next) { // 중복 확인
@@ -112,12 +127,12 @@ function checkUserRegValidation (req, res, next) { // 중복 확인
   )
 }
 
-function isLoggedIn (req, res, next) {
-  if (req.isAuthenticated()) {
-    return next()
-  }
-  res.json({ success: false, err: 'required login' })
-}
+// function isLoggedIn (req, res, next) {
+//   if (req.isAuthenticated()) {
+//     return next()
+//   }
+//   res.json({ success: false, err: 'required login' })
+// }
 
 function checkId (req, res, next) {
   Customer.findOne({

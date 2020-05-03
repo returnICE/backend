@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function (sequelize, DataTypes) {
+module.exports = function(sequelize, DataTypes) {
   return sequelize.define('Campaign', {
     campaignId: {
       type: DataTypes.INTEGER(11),
@@ -23,8 +23,12 @@ module.exports = function (sequelize, DataTypes) {
     info: {
       type: DataTypes.STRING(256),
       allowNull: true
+    },
+    birthOp: {
+      type: DataTypes.INTEGER(4),
+      allowNull: true
     }
   }, {
     tableName: 'Campaign'
-  })
-}
+  });
+};

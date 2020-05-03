@@ -1,10 +1,10 @@
+import './env'
 var createError = require('http-errors')
 var express = require('express')
 var path = require('path')
 var session = require('express-session')
 var passport = require('passport')
 var logger = require('morgan')
-
 // DB 연결
 
 // var sequelize = require('./models').sequelize;   // mysql 시퀄라이저 모델

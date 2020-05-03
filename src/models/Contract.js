@@ -1,6 +1,6 @@
 /* jshint indent: 2 */
 
-module.exports = function (sequelize, DataTypes) {
+module.exports = function(sequelize, DataTypes) {
   return sequelize.define('Contract', {
     contractId: {
       type: DataTypes.INTEGER(11),
@@ -36,8 +36,12 @@ module.exports = function (sequelize, DataTypes) {
     endDate: {
       type: DataTypes.DATEONLY,
       allowNull: false
+    },
+    paymentDay: {
+      type: DataTypes.DATEONLY,
+      allowNull: false
     }
   }, {
     tableName: 'Contract'
-  })
-}
+  });
+};

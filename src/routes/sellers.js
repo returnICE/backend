@@ -3,13 +3,13 @@ var router = express.Router()
 var async = require('async')
 var crypto = require('crypto')
 var jwt = require('jsonwebtoken')
-var Customer = require('../models').Customer
+var Seller = require('../models').Seller
 var subedItem = require('../models').subedItem
 
 router.post('/', checkUserRegValidation, function (req, res, next) {
   var salt = Math.round((new Date().valueOf() * Math.random()))
   req.body.pw = crypto.createHash('sha512').update(req.body.pw + salt).digest('hex')
-  Customer.create({ ...req.body, salt: salt })
+  Seller.create({ ...req.body, salt: salt })
     .then((data) => { res.json({ success: true, data }) })
     .catch((err) => {
       if (err) return res.json({ success: false, message: err })
@@ -18,11 +18,11 @@ router.post('/', checkUserRegValidation, function (req, res, next) {
 
 router.post('/login', async (req, res, next) => {
   try {
-    Customer.findByPk(req.body.customerId)
+    Seller.findByPk(req.body.sellerId)
       .then((data) => {
         if (data && data.pw === crypto.createHash('sha512').update(req.body.pw + data.salt).digest('hex')) {
           var payload = {
-            customerId: data.customerId
+            sellerId: data.sellerId
           }
           var options = { expiresIn: 60 * 60 * 24 }
           jwt.sign(payload, process.env.JWT_KEY, options, function (err, token) {
@@ -44,7 +44,7 @@ router.get('/myinfo', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Customer.findByPk(decoded.customerId).then((err, data) => {
+      Seller.findByPk(decoded.sellerId).then((err, data) => {
         if (err) return res.json({ success: false, err })
         delete data.pw
         return res.json({ succes: true, data })
@@ -61,7 +61,7 @@ router.put('/myinfo', function (req, res) {
     else {
       var salt = Math.round((new Date().valueOf() * Math.random()))
       var pw = crypto.createHash('sha512').update(req.body.pw + salt).digest('hex')
-      Customer.update({ pw, salt }, { where: { customerId: decoded.customerId } })
+      Seller.update({ pw, salt }, { where: { sellerId: decoded.sellerId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }
@@ -74,7 +74,7 @@ router.delete('/myinfo', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Customer.destroy({ where: { customerId: decoded.customerId } })
+      Seller.destroy({ where: { sellerId: decoded.sellerId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }
@@ -88,7 +88,7 @@ router.post('/checkid', checkId, function (req, res) {
 
 // 구독중인 음식점 조회 - 개발중
 router.get('/sub', function (req, res) {
-  Customer.findAll({ include: [{ model: subedItem, attributes: ['subid'] }] }, req.params.id, function (err) {
+  Seller.findAll({ include: [{ model: subedItem, attributes: ['subid'] }] }, req.params.id, function (err) {
     if (err) return res.json({ success: false, message: err })
     else return res.json({ succes: true })
   })
@@ -100,8 +100,8 @@ function checkUserRegValidation (req, res, next) { // 중복 확인
   var isValid = true
   async.waterfall(
     [function (callback) {
-      Customer.findOne({
-        where: { customerId: req.body.customerId }
+      Seller.findOne({
+        where: { sellerId: req.body.sellerId }
       }).then((data) => {
         console.log('data1', data)
         if (data) {
@@ -110,7 +110,7 @@ function checkUserRegValidation (req, res, next) { // 중복 확인
         callback(null, isValid)
       })
     }, function (isValid, callback) {
-      Customer.findOne({
+      Seller.findOne({
         where: { phone: req.body.phone }
       }).then((data) => {
         console.log('data2', data)
@@ -139,8 +139,8 @@ function checkUserRegValidation (req, res, next) { // 중복 확인
 // }
 
 function checkId (req, res, next) {
-  Customer.findOne({
-    where: { customerId: req.body.customerId }
+  Seller.findOne({
+    where: { sellerId: req.body.sellerId }
   }).then((data) => {
     if (data) {
       res.json({ succes: false, err: '아이디가 존재합니다' })

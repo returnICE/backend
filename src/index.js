@@ -5,14 +5,13 @@ var path = require('path')
 var logger = require('morgan')
 // DB 연결
 
-// var sequelize = require('./models').sequelize;   // mysql 시퀄라이저 모델
-// sequelize.sync();    //서버가 실행될때 시퀄라이저의 스키마를 DB에 적용시킨다.
-
 // 라우팅
 var uploadRouter = require('./routes/upload')
 var homeRouter = require('./routes/home')
 var usersRouter = require('./routes/users')
 var sellersRouter = require('./routes/sellers')
+var searchRouter = require('./routes/search')
+
 var app = express()
 
 app.use(logger('dev'))
@@ -24,6 +23,9 @@ app.use('/', homeRouter)
 app.use('/upload', uploadRouter)
 app.use('/users', usersRouter)
 app.use('/sellers', sellersRouter)
+app.use('/search', searchRouter)
+// catch 404 and forward to error handler
+
 app.use(function (req, res, next) {
   next(createError(404))
 })

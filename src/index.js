@@ -2,8 +2,6 @@ import './env'
 var createError = require('http-errors')
 var express = require('express')
 var path = require('path')
-var session = require('express-session')
-var passport = require('passport')
 var logger = require('morgan')
 // DB 연결
 
@@ -14,27 +12,18 @@ var logger = require('morgan')
 var uploadRouter = require('./routes/upload')
 var homeRouter = require('./routes/home')
 var usersRouter = require('./routes/users')
+var sellersRouter = require('./routes/sellers')
 var app = express()
 
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
-app.use(session({
-  key: 'sid',
-  secret: 'TURRYMALL',
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    maxAge: 24000 * 60 * 60
-  }
-})) // 세션 설정
-app.use(passport.initialize())
-app.use(passport.session())
 
 app.use('/', homeRouter)
 app.use('/upload', uploadRouter)
 app.use('/users', usersRouter)
+app.use('/sellers', sellersRouter)
 app.use(function (req, res, next) {
   next(createError(404))
 })

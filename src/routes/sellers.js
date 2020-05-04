@@ -68,7 +68,7 @@ router.put('/myinfo', function (req, res) {
   })
 })
 
-// 소비자 정보 삭제 
+// 소비자 정보 삭제
 router.delete('/myinfo', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
@@ -96,7 +96,7 @@ router.get('/sub', function (req, res) {
 
 module.exports = router
 
-function checkUserRegValidation(req, res, next) { // 중복 확인
+function checkUserRegValidation (req, res, next) { // 중복 확인
   var isValid = true
   async.waterfall(
     [function (callback) {
@@ -138,7 +138,7 @@ function checkUserRegValidation(req, res, next) { // 중복 확인
 //   res.json({ success: false, err: 'required login' })
 // }
 
-function checkId(req, res, next) {
+function checkId (req, res, next) {
   Seller.findOne({
     where: { sellerId: req.body.sellerId }
   }).then((data) => {

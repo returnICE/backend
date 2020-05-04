@@ -1,11 +1,13 @@
 const nodeExternals = require('webpack-node-externals')
+const path = require('path');
 
 module.exports = {
   target: 'node',
+  entry:{maidn:'./bin/server.js'},
   externals: [nodeExternals()],
   resolve: {
     modules: ['node_modules'],
-    extensions: ['.js', '.json']
+    extensions: ['.js']
   },
 }
 

@@ -15,8 +15,8 @@ router.post('/', async (req, res, next) => {
     var page = req.body.page
     var x = req.body.zoom
     var listcount = 6
-    if(x == -1){
-      const sellers = await Seller.findAll({ 
+    if (x === -1) {
+      const sellers = await Seller.findAll({
         raw: true
       })
 
@@ -32,25 +32,24 @@ router.post('/', async (req, res, next) => {
       })
 
       res.json({ success: true, sellerdata: sellers.slice(listcount * page, listcount * page + listcount) })
-    }
-    else{
-      var range = 293.59*Math.exp(-0.703*x)
-      
-      const sellers = await Seller.findAll({ 
+    } else {
+      var range = 293.59 * Math.exp(-0.703 * x)
+
+      const sellers = await Seller.findAll({
         raw: true,
         where: {
-          lat:{
-            [Op.gte]:lat-range,
-            [Op.lte]:parseFloat(lat)+range
+          lat: {
+            [Op.gte]: lat - range,
+            [Op.lte]: parseFloat(lat) + range
           },
-          lon:{
-            [Op.gte]:lon-range,
-            [Op.lte]:parseFloat(lon)+range
+          lon: {
+            [Op.gte]: lon - range,
+            [Op.lte]: parseFloat(lon) + range
           }
         }
       })
-      
-      res.json({ success: true, sellerdata: sellers})
+
+      res.json({ success: true, sellerdata: sellers })
     }
   } catch (err) {
     console.log(err)

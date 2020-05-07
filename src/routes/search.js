@@ -4,28 +4,53 @@ var Menu = require('../models').Menu
 var SubItem = require('../models').SubItem
 var SubMenu = require('../models').SubMenu
 
+var Op = require('sequelize').Op
+
 var router = express.Router()
 
 router.post('/', async (req, res, next) => {
   try {
-    const sellers = await Seller.findAll({ raw: true })
     var lat = req.body.lat
     var lon = req.body.lon
     var page = req.body.page
+    var x = req.body.zoom
     var listcount = 6
+    if (x === -1) {
+      const sellers = await Seller.findAll({
+        raw: true
+      })
 
-    sellers.sort((a, b) => {
-      var ax = (lat - a.lat)
-      var ay = (lon - a.lon) * Math.cos(a.lat * Math.PI / 180)
-      var A = 110.25 * Math.sqrt(ax * ax + ay * ay)
+      sellers.sort((a, b) => {
+        var ax = (lat - a.lat)
+        var ay = (lon - a.lon) * Math.cos(a.lat * Math.PI / 180)
+        var A = 110.25 * Math.sqrt(ax * ax + ay * ay)
 
-      var bx = (lat - b.lat)
-      var by = (lon - b.lon) * Math.cos(b.lat * Math.PI / 180)
-      var B = 110.25 * Math.sqrt(bx * bx + by * by)
-      return A < B ? -1 : 1
-    })
+        var bx = (lat - b.lat)
+        var by = (lon - b.lon) * Math.cos(b.lat * Math.PI / 180)
+        var B = 110.25 * Math.sqrt(bx * bx + by * by)
+        return A < B ? -1 : 1
+      })
 
-    res.json({ success: true, sellerdata: sellers.slice(listcount * page, listcount * page + listcount) })
+      res.json({ success: true, sellerdata: sellers.slice(listcount * page, listcount * page + listcount) })
+    } else {
+      var range = 293.59 * Math.exp(-0.703 * x)
+
+      const sellers = await Seller.findAll({
+        raw: true,
+        where: {
+          lat: {
+            [Op.gte]: lat - range,
+            [Op.lte]: parseFloat(lat) + range
+          },
+          lon: {
+            [Op.gte]: lon - range,
+            [Op.lte]: parseFloat(lon) + range
+          }
+        }
+      })
+
+      res.json({ success: true, sellerdata: sellers })
+    }
   } catch (err) {
     console.log(err)
     res.json({ success: false, error: err })

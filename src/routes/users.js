@@ -27,7 +27,7 @@ router.post('/login', async (req, res, next) => {
           var options = { expiresIn: 60 * 60 * 24 }
           jwt.sign(payload, process.env.JWT_KEY, options, function (err, token) {
             if (err) return res.json({ success: false, err: err })
-            return res.send({ success: true, data: token })
+            return res.send({ success: true, data: token, name: data.name })
           })
         } else {
           res.json({ succes: false, err: '아이디와 패스워드를 확인해주세요' })
@@ -44,10 +44,11 @@ router.get('/myinfo', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Customer.findByPk(decoded.customerId).then((err, data) => {
-        if (err) return res.json({ success: false, err })
+      Customer.findByPk(decoded.customerId).then((data) => {
         delete data.pw
-        return res.json({ succes: true, data })
+        return res.json({ success: true, data })
+      }).catch((err) => {
+        return res.json({ succes: false, err })
       })
     }
   })

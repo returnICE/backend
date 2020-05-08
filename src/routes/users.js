@@ -2,9 +2,12 @@ var express = require('express')
 var router = express.Router()
 var async = require('async')
 var crypto = require('crypto')
+var db = require('../models/index')
+var Customer = db.Customer
+// var SubItem = db.SubItem
+// var Seller = db.Seller
+// var SubedItem = db.SubedItem
 var jwt = require('jsonwebtoken')
-var Customer = require('../models').Customer
-var subedItem = require('../models').subedItem
 
 router.post('/', checkUserRegValidation, function (req, res, next) {
   var salt = Math.round((new Date().valueOf() * Math.random()))
@@ -87,11 +90,20 @@ router.post('/checkid', checkId, function (req, res) {
   res.json({ success: true })
 })
 
-// 구독중인 음식점 조회 - 개발중
+// 구독중인 음식점 조회
 router.get('/sub', function (req, res) {
-  Customer.findAll({ include: [{ model: subedItem, attributes: ['subid'] }] }, req.params.id, function (err) {
-    if (err) return res.json({ success: false, message: err })
-    else return res.json({ succes: true })
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      var query = 'SELECT customerId, T1.startDate, T1.endDate, T1.term, T1. limitTimes, T1.autopay, T1.usedTimes, T1.subedId, T2.subid, T2.subName, T3.sellerId, T3.name, T3.imgURL FROM (SELECT * FROM SubedItem WHERE SubedItem.customerId = :customerId) T1 join SubItem T2 join Seller T3 WHERE T1.subid = T2.subid AND T2.sellerId = T3.sellerId'
+      var values = { // query에서 :customerId -> decode.customerId로 변환
+        customerId: decoded.customerId
+      }
+      db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) { // results 뭐하는건지 모르겠음
+        return res.json({ success: true, subdata })
+      })
+    }
   })
 })
 

@@ -30,6 +30,8 @@ Object.keys(db).forEach(function (modelName) {
 db.SubItem.belongsTo(db.Seller, { foreignKey: 'sellerId' });
 db.Menu.belongsToMany(db.SubItem, { through: 'SubMenu',foreignKey:'menuId' });
 db.SubItem.belongsToMany(db.Menu, { through: 'SubMenu',foreignKey:'subId' });
+db.Customer.belongsToMany(db.SubItem, { through: 'SubedItem',foreignKey:'customerId' });
+db.SubItem.belongsToMany(db.Customer, { through: 'SubedItem',foreignKey:'subId' });
 
 db.sequelize = sequelize
 db.Sequelize = Sequelize

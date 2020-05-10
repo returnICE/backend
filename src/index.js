@@ -12,6 +12,7 @@ var homeRouter = require('./routes/home')
 var usersRouter = require('./routes/users')
 var sellersRouter = require('./routes/sellers')
 var searchRouter = require('./routes/search')
+var acceptsRouter = require('./routes/accepts')
 
 var app = express()
 
@@ -25,6 +26,7 @@ app.use('/upload', uploadRouter)
 app.use('/users', usersRouter)
 app.use('/sellers', sellersRouter)
 app.use('/search', searchRouter)
+app.use('/accepts', acceptsRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

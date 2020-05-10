@@ -58,18 +58,32 @@ router.get('/customer', (req, res) => {
 // 구독권 + 매장 메뉴들 목록 조회
 router.get('/product', (req, res) => {
   var token = req.headers['x-access-token']
-  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
     if (err) return res.json({ success: false, err })
-    SubItem.findAll({
-      include: [{
-        model: Menu
-      }],
-      where: {
-        sellerId: decoded.sellerId
-      }
-    }).then((err, data) => {
+    //  include: [ { model: Division, include: [ Department ] } ],
+    try {
+      const subItem = await SubItem.findAll({
+        include: [{
+          model: Menu,
+          attributes: ['menuName'],
+          through: { attributes: [] }
+        }],
+        where: {
+          sellerId: decoded.sellerId
+        },
+        attributes: ['subName', 'info', 'price', 'limitTimes', 'term']
+      })
+      const menu = await Menu.findAll({
+        where: {
+          sellerId: decoded.sellerId
+        },
+        attributes: ['menuId', 'sellerId', 'menuName', 'info', 'price', 'avgScore']
+      })
+      res.json({ success: true, menu, subItem })
+    }
+    catch (err) {
       res.json(err)
-    })
+    }
   })
 })
 
@@ -92,13 +106,8 @@ router.post('/product/sub', (req, res) => {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     SubItem.create({ ...req.body, sellerId: decoded.sellerId }).then((result) => {
-      var arr
-      var temp = req.body.menuId
-      console.log(typeof (temp))
-      for (var i in temp) {
-        console.log(i)
-        arr.push({ menuId: req.body.menuId[i], subId: result.subId })
-      }
+      var arr = []
+      req.body.menuId.map((menuId) => arr.push({ menuId, subId: result.subId }))
       SubMenu.bulkCreate(arr).then((data) => {
         res.json({ success: true, data })
       }).catch((err) => {
@@ -107,6 +116,32 @@ router.post('/product/sub', (req, res) => {
     }).catch((err) => {
       res.json({ success: false, err })
     })
+  })
+})
+
+// 음식점 구독권 삭제
+router.delete('/product/sub', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      SubItem.destroy({ where: { sellerId: decoded.sellerId, subId:req.body.subId } })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
+    }
+  })
+})
+
+// 음식점 메뉴 삭제
+router.delete('/product/menu', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId:req.body.menu } })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
+    }
   })
 })
 
@@ -126,6 +161,7 @@ router.get('/myinfo', function (req, res) {
     }
   })
 })
+
 
 // 음식점 정보 수정 -> 비밀번호변경
 router.put('/myinfo', function (req, res) {
@@ -162,7 +198,7 @@ router.post('/checkid', checkId, function (req, res) {
 
 module.exports = router
 
-function checkUserRegValidation (req, res, next) { // 중복 확인
+function checkUserRegValidation(req, res, next) { // 중복 확인
   var isValid = true
   async.waterfall(
     [function (callback) {
@@ -193,7 +229,7 @@ function checkUserRegValidation (req, res, next) { // 중복 확인
 //   res.json({ success: false, err: 'required login' })
 // }
 
-function checkId (req, res, next) {
+function checkId(req, res, next) {
   Seller.findOne({
     where: { sellerId: req.body.sellerId }
   }).then((data) => {

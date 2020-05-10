@@ -80,8 +80,7 @@ router.get('/product', (req, res) => {
         attributes: ['menuId', 'sellerId', 'menuName', 'info', 'price', 'avgScore']
       })
       res.json({ success: true, menu, subItem })
-    }
-    catch (err) {
+    } catch (err) {
       res.json(err)
     }
   })
@@ -125,7 +124,7 @@ router.delete('/product/sub', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      SubItem.destroy({ where: { sellerId: decoded.sellerId, subId:req.body.subId } })
+      SubItem.destroy({ where: { sellerId: decoded.sellerId, subId: req.body.subId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }
@@ -138,7 +137,7 @@ router.delete('/product/menu', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId:req.body.menu } })
+      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: req.body.menu } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }
@@ -161,7 +160,6 @@ router.get('/myinfo', function (req, res) {
     }
   })
 })
-
 
 // 음식점 정보 수정 -> 비밀번호변경
 router.put('/myinfo', function (req, res) {
@@ -198,7 +196,7 @@ router.post('/checkid', checkId, function (req, res) {
 
 module.exports = router
 
-function checkUserRegValidation(req, res, next) { // 중복 확인
+function checkUserRegValidation (req, res, next) { // 중복 확인
   var isValid = true
   async.waterfall(
     [function (callback) {
@@ -229,7 +227,7 @@ function checkUserRegValidation(req, res, next) { // 중복 확인
 //   res.json({ success: false, err: 'required login' })
 // }
 
-function checkId(req, res, next) {
+function checkId (req, res, next) {
   Seller.findOne({
     where: { sellerId: req.body.sellerId }
   }).then((data) => {

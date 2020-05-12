@@ -71,7 +71,7 @@ router.get('/product', (req, res) => {
         where: {
           sellerId: decoded.sellerId
         },
-        attributes: ['subName', 'info', 'price', 'limitTimes', 'term']
+        attributes: ['subId', 'subName', 'info', 'price', 'limitTimes', 'term']
       })
       const menu = await Menu.findAll({
         where: {
@@ -119,12 +119,13 @@ router.post('/product/sub', (req, res) => {
 })
 
 // 음식점 구독권 삭제
-router.delete('/product/sub', function (req, res) {
+router.delete('/product/sub/:subId', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      SubItem.destroy({ where: { sellerId: decoded.sellerId, subId: req.body.subId } })
+      console.log(req.params.subId)
+      SubItem.destroy({ where: { sellerId: decoded.sellerId, subId: req.params.subId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }
@@ -132,12 +133,13 @@ router.delete('/product/sub', function (req, res) {
 })
 
 // 음식점 메뉴 삭제
-router.delete('/product/menu', function (req, res) {
+router.delete('/product/menu/:menuId', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: req.body.menu } })
+      console.log(req.params.menuId)
+      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: req.params.menuId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }

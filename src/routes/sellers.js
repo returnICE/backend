@@ -52,7 +52,34 @@ router.post('/login', async (req, res, next) => {
 
 // 구독중인 소비자 현황 - 개발중
 router.get('/customer', (req, res) => {
-  res.json({ data: 'hi' })
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try{
+      var values = {
+        sellerId: decoded.sellerId
+      }
+      var customerData = []
+      var query = "SELECT T3.name, T3.phone, T3.birth, T1.subName, T2.endDate, T2.limitTimes, T2.usedTimes, T2.autoPay FROM ( SELECT subName, subId FROM SubItem where SubItem.sellerId = :sellerId ) as T1 join SubedItem as T2 join Customer as T3 where T1.subId = T2.subId and T2.customerId = T3.customerId;"
+      await db.sequelize.query(query, {replacements: values }).spread(function (results, subdata) {
+        for (var s of subdata){
+          customerData.push({
+            name: s.name,
+            phone: s.phone,
+            birth: s.birth,
+            subName: s.subName,
+            endDate: s.endDate,
+            limitTimes: s.limitTimes,
+            usedTimes: s.usedTimes,
+            autopay: s.autoPay
+          })
+        }
+      })
+      res.json({ success: true, data: customerData })
+    }catch{
+      res.json(err)
+    }
+  })
 })
 
 // 구독권 + 매장 메뉴들 목록 조회

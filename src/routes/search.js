@@ -1,8 +1,6 @@
 var express = require('express')
 var Seller = require('../models').Seller
-var Menu = require('../models').Menu
-var SubItem = require('../models').SubItem
-var SubMenu = require('../models').SubMenu
+var db = require('../models/index')
 
 var Op = require('sequelize').Op
 
@@ -59,70 +57,65 @@ router.post('/', async (req, res, next) => {
 
 router.get('/:sellerId', async (req, res, next) => {
   const sellerId = req.params.sellerId
-  var sellerdata = await Seller.findOne({
-    where: { sellerId: sellerId }
-  })
-  if (!sellerdata) {
-    res.json({ success: false, error: 'data없음' })
-    return
+  var sellerdetaildata = {}
+  var menudata = []
+  var subItem = []
+
+  var query = 'SELECT subId, subName, price, limitTimes, term, subs, info FROM SubItem WHERE SubItem.sellerId = :sellerId;'
+  var values = {
+    sellerId: sellerId
   }
-
-  Seller.hasMany(Menu, { foreignKey: 'sellerId' })
-  Menu.belongsTo(Seller, { foreignKey: 'sellerId' })
-  const menudata = await Menu.findAll({
-    include: [{
-      attributes: [],
-      model: Seller,
-      where: { sellerId: sellerId }
-    }]
-  })
-
-  Seller.hasMany(SubItem, { foreignKey: 'sellerId' })
-  SubItem.belongsTo(Seller, { foreignKey: 'sellerId' })
-  var subItem = await SubItem.findAll({
-    include: [{
-      attributes: [],
-      model: Seller,
-      where: { sellerId: sellerId }
-    }],
-    raw: true
-  })
-
-  var subIdlist = [...new Set(subItem.map(it => it.subId))]
-
-  async function asyncForEach (array, callback) {
-    for (let index = 0; index < array.length; index++) {
-      await callback(array[index], index, array)
+  await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) { // results 뭐하는건지 모르겠음
+    for (var s of subdata) {
+      subItem.push({
+        subId: s.subId,
+        subName: s.subName,
+        price: s.price,
+        limitTimes: s.limitTimes,
+        term: s.term,
+        subs: s.subs,
+        info: s.info,
+        menu: []
+      })
     }
-  }
+  })
 
-  const createMenu = async () => {
-    await asyncForEach(subIdlist, async (subId, idx) => {
-      var submenu = await SubMenu.findAll({
-        where: { subId: subId }
-      })
-      var menuIdlist = [...new Set(submenu.map(it => it.menuId))]
-      var menu = await Menu.findAll({
-        where: { menuId: menuIdlist },
-        raw: true
-      })
-      var _menu = []
-      menu.forEach(m => {
-        _menu.push(m)
-      })
-      subItem[idx].menu = _menu
+  for (var i = 0; i < subItem.length; i++) {
+    query = 'SELECT T3.menuName, T3.price, T3.avgScore FROM SubMenu T2 join Menu T3 WHERE T2.subId = :subId AND T2.menuId = T3.menuId;'
+    values = {
+      subId: subItem[i].subId
+    }
+    await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) { // results 뭐하는건지 모르겠음
+      for (var s of subdata) {
+        subItem[i].menu.push({
+          menuName: s.menuName,
+          price: s.price,
+          avgScore: s.avgScore
+        })
+      }
     })
-    const sellerdetaildata = {
-      name: sellerdata.name,
-      phone: sellerdata.phone,
-      address: sellerdata.address,
-      totalSubs: sellerdata.totalSubs,
-      info: sellerdata.info
-    }
-    res.json({ success: true, sellerdetaildata: sellerdetaildata, menudata: menudata, subItem: subItem })
   }
 
-  createMenu()
+  query = 'SELECT name,phone,address,totalsubs FROM Seller WHERE sellerId = :sellerId;'
+  values = { // query에서 :customerId -> decode.customerId로 변환
+    sellerId: sellerId
+  }
+  await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) { // results 뭐하는건지 모르겠음
+    sellerdetaildata.name = subdata[0].name
+    sellerdetaildata.phone = subdata[0].phone
+    sellerdetaildata.address = subdata[0].address
+    sellerdetaildata.totalSubs = subdata[0].totalSubs
+  })
+
+  query = 'SELECT menuName,price,avgScore FROM Menu WHERE sellerId = :sellerId;'
+  values = { // query에서 :customerId -> decode.customerId로 변환
+    sellerId: sellerId
+  }
+  await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) { // results 뭐하는건지 모르겠음
+    menudata = subdata
+  })
+
+  res.json({ success: true, sellerdetaildata: sellerdetaildata, menudata: menudata, subItem: subItem })
 })
 
 module.exports = router

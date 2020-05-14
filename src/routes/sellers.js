@@ -52,7 +52,30 @@ router.post('/login', async (req, res, next) => {
 
 // 구독중인 소비자 현황 - 개발중
 router.get('/customer', (req, res) => {
-  res.json({ data: 'hi' })
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    var values = {
+      sellerId: decoded.sellerId
+    }
+    var customerData = []
+    var query = 'SELECT T3.name, T3.phone, T3.birth, T1.subName, T2.endDate, T2.limitTimes, T2.usedTimes, T2.autoPay FROM ( SELECT subName, subId FROM SubItem where SubItem.sellerId = :sellerId ) as T1 join SubedItem as T2 join Customer as T3 where T1.subId = T2.subId and T2.customerId = T3.customerId;'
+    await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
+      for (var s of subdata) {
+        customerData.push({
+          name: s.name,
+          phone: s.phone,
+          birth: s.birth,
+          subName: s.subName,
+          endDate: s.endDate,
+          limitTimes: s.limitTimes,
+          usedTimes: s.usedTimes,
+          autopay: s.autoPay
+        })
+      }
+    })
+    res.json({ success: true, data: customerData })
+  })
 })
 
 // 구독권 + 매장 메뉴들 목록 조회
@@ -71,7 +94,7 @@ router.get('/product', (req, res) => {
         where: {
           sellerId: decoded.sellerId
         },
-        attributes: ['subName', 'info', 'price', 'limitTimes', 'term']
+        attributes: ['subId', 'subName', 'info', 'price', 'limitTimes', 'term']
       })
       const menu = await Menu.findAll({
         where: {
@@ -119,12 +142,13 @@ router.post('/product/sub', (req, res) => {
 })
 
 // 음식점 구독권 삭제
-router.delete('/product/sub', function (req, res) {
+router.delete('/product/sub/:subId', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      SubItem.destroy({ where: { sellerId: decoded.sellerId, subId: req.body.subId } })
+      console.log(req.params.subId)
+      SubItem.destroy({ where: { sellerId: decoded.sellerId, subId: req.params.subId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }
@@ -132,12 +156,13 @@ router.delete('/product/sub', function (req, res) {
 })
 
 // 음식점 메뉴 삭제
-router.delete('/product/menu', function (req, res) {
+router.delete('/product/menu/:menuId', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: req.body.menu } })
+      console.log(req.params.menuId)
+      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: req.params.menuId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }

@@ -120,7 +120,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
     for (var s of subdata) {
       subedItem.push({
         endDate: s.endDate,
-        term: s.term,        
+        term: s.term,
         limitTimes: s.limitTimes,
         usedTimes: s.usedTimes,
         subId: s.subId,

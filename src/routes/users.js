@@ -96,7 +96,7 @@ router.get('/sub', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      var query = 'SELECT customerId, T1.startDate, T1.endDate, T1.term, T1. limitTimes, T1.autopay, T1.usedTimes, T1.subedId, T2.subid, T2.subName, T3.sellerId, T3.name, T3.imgURL FROM (SELECT * FROM SubedItem WHERE SubedItem.customerId = :customerId) T1 join SubItem T2 join Seller T3 WHERE T1.subid = T2.subid AND T2.sellerId = T3.sellerId'
+      var query = 'SELECT customerId, T1.startDate, T1.endDate, T1.term, T1. limitTimes, T1.autopay, T1.usedTimes, T1.subedId, T2.subId, T2.subName, T3.sellerId, T3.name, T3.imgURL FROM (SELECT * FROM SubedItem WHERE SubedItem.customerId = :customerId) T1 join SubItem T2 join Seller T3 WHERE T1.subId = T2.subId AND T2.sellerId = T3.sellerId'
       var values = { // query에서 :customerId -> decode.customerId로 변환
         customerId: decoded.customerId
       }
@@ -107,6 +107,50 @@ router.get('/sub', function (req, res) {
   })
 })
 
+// 구독중인 서비스 정보 조회
+router.get('/sub/:subedId', async (req, res, next) => {
+  const subedId = req.params.subedId
+  var subedItem = []
+
+  var query = 'SELECT T1.startDate, T1.endDate, T1.term, T1.limitTimes, T1.usedTimes, T2.subId, T2.subName, T2.price, T3.sellerId, T3.name FROM SubedItem T1 join SubItem T2 join .Seller T3 WHERE T2.sellerId = T3.sellerId AND T1.subId = T2.subId AND T1.subedId = :subedId;'
+  var values = {
+    subedId: subedId
+  }
+  await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) { // results 뭐하는건지 모르겠음
+    for (var s of subdata) {
+      subedItem.push({
+        endDate: s.endDate,
+        term: s.term,        
+        limitTimes: s.limitTimes,
+        usedTimes: s.usedTimes,
+        subId: s.subId,
+        subName: s.subName,
+        sellerId: s.sellerId,
+        price: s.price,
+        name: s.name,
+        menu: []
+      })
+    }
+  })
+
+  for (var i = 0; i < subedItem.length; i++) {
+    query = 'SELECT T3.menuName, T3.price, T3.avgScore FROM SubMenu T2 join Menu T3 WHERE T2.subId = :subId AND T2.menuId = T3.menuId;'
+    values = {
+      subId: subedItem[i].subId
+    }
+    await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) { // results 뭐하는건지 모르겠음
+      for (var s of subdata) {
+        subedItem[i].menu.push({
+          menuName: s.menuName,
+          price: s.price,
+          avgScore: s.avgScore
+        })
+      }
+    })
+  }
+
+  res.json({ success: true, subedItem: subedItem })
+})
 module.exports = router
 
 function checkUserRegValidation (req, res, next) { // 중복 확인

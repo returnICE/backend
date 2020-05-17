@@ -13,13 +13,18 @@ var usersRouter = require('./routes/users')
 var sellersRouter = require('./routes/sellers')
 var searchRouter = require('./routes/search')
 var acceptsRouter = require('./routes/accepts')
+var payRouter = require('./routes/pay')
 
 var app = express()
 
 app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, '../public')))
+
+app.set('views', path.join(__dirname, '/views'))
+app.set('view engine', 'ejs')
+app.engine('html', require('ejs').renderFile)
 
 app.use('/', homeRouter)
 app.use('/upload', uploadRouter)
@@ -27,6 +32,7 @@ app.use('/users', usersRouter)
 app.use('/sellers', sellersRouter)
 app.use('/search', searchRouter)
 app.use('/accepts', acceptsRouter)
+app.use('/pay', payRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

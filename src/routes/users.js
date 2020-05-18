@@ -112,7 +112,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
   const subedId = req.params.subedId
   var subedItem = []
 
-  var query = 'SELECT T1.startDate, T1.endDate, T1.term, T1.limitTimes, T1.usedTimes, T2.subId, T2.subName, T2.price, T3.sellerId, T3.name FROM SubedItem T1 join SubItem T2 join .Seller T3 WHERE T2.sellerId = T3.sellerId AND T1.subId = T2.subId AND T1.subedId = :subedId;'
+  var query = 'SELECT T1.startDate, T1.endDate, T1.term, T1.limitTimes, T1.usedTimes, T1.subedId, T2.subId, T2.subName, T2.price, T3.sellerId, T3.name FROM SubedItem T1 join SubItem T2 join .Seller T3 WHERE T2.sellerId = T3.sellerId AND T1.subId = T2.subId AND T1.subedId = :subedId;'
   var values = {
     subedId: subedId
   }
@@ -123,6 +123,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
         term: s.term,
         limitTimes: s.limitTimes,
         usedTimes: s.usedTimes,
+        subedId: s.subedId,
         subId: s.subId,
         subName: s.subName,
         sellerId: s.sellerId,
@@ -134,7 +135,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
   })
 
   for (var i = 0; i < subedItem.length; i++) {
-    query = 'SELECT T3.menuName, T3.price, T3.avgScore FROM SubMenu T2 join Menu T3 WHERE T2.subId = :subId AND T2.menuId = T3.menuId;'
+    query = 'SELECT T3.menuId, T3.menuName, T3.price, T3.avgScore FROM SubMenu T2 join Menu T3 WHERE T2.subId = :subId AND T2.menuId = T3.menuId;'
     values = {
       subId: subedItem[i].subId
     }
@@ -143,7 +144,8 @@ router.get('/sub/:subedId', async (req, res, next) => {
         subedItem[i].menu.push({
           menuName: s.menuName,
           price: s.price,
-          avgScore: s.avgScore
+          avgScore: s.avgScore,
+          menuId: s.menuId
         })
       }
     })

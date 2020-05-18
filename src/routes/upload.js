@@ -5,8 +5,8 @@ var express = require('express')
 var router = express.Router()
 
 const s3 = new aws.S3({
-  accessKeyId: process.env.AWS_KEY,
-  secretAccessKey: process.env.AWS_SECRET,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   region: 'ap-northeast-1'
 })
 
@@ -24,10 +24,9 @@ const upload = multer({
   })
 })
 
-router.post('/', upload.array('imgFile'), (req, res) => {
+router.post('/', upload.single('file'), (req, res) => {
   try {
-    var location = req.files.map(file => file.location)
-    res.json({ success: true, location })
+    res.json({ success: true, location: req.file.location })
   } catch (err) {
     console.log(err)
     res.status(500).send(err)

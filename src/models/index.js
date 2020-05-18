@@ -33,6 +33,8 @@ db.SubItem.belongsToMany(db.Menu, { through: 'SubMenu',foreignKey:'subId' });
 db.Customer.belongsToMany(db.SubItem, { through: 'SubedItem',foreignKey:'customerId' });
 db.SubItem.belongsToMany(db.Customer, { through: 'SubedItem',foreignKey:'subId' });
 db.EatenLog.belongsTo(db.Menu, {foreignKey:'menuId'});
+db.EatenLog.belongsTo(db.Customer, {foreignKey:'customerId'});
+
 
 db.sequelize = sequelize
 db.Sequelize = Sequelize

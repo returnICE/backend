@@ -21,6 +21,9 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')))
 
+const cors = require('cors')
+
+app.use(cors())
 app.use('/', homeRouter)
 app.use('/upload', uploadRouter)
 app.use('/users', usersRouter)

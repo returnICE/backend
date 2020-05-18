@@ -24,7 +24,7 @@ const upload = multer({
   })
 })
 
-router.post('/', upload.single('imgFile'), (req, res) => {
+router.post('/', upload.single('file'), (req, res) => {
   try {
     res.json({ success: true, location: req.file.location })
   } catch (err) {

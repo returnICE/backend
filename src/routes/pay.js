@@ -60,7 +60,7 @@ router.post('/billings', async (req, res) => { // 결제
         imp_secret: '0QL5gQKrscs6CHpFQsILUbcfd6uoKd5K3QQkHALaNegqWF5N8Ny2ZKidRNBB0Gl4xcoeMaoAoE0lk58t' // REST API Secret
       }
     })
-    const { accessToken } = getToken.data.response // 인증 토큰
+    const accessToken = getToken.data.response.access_token // 인증 토큰
 
     // 결제(재결제) 요청
     const paymentResult = await axios({
@@ -68,7 +68,7 @@ router.post('/billings', async (req, res) => { // 결제
       method: 'post',
       headers: { Authorization: accessToken }, // 인증 토큰 Authorization header에 추가
       data: {
-        customerUid,
+        customer_uid: customerUid,
         merchant_uid: customerUid + subId + 'order_' + new Date().getTime(), // 새로 생성한 결제(재결제)용 주문 번호
         amount: amount,
         name: subname
@@ -85,6 +85,8 @@ router.post('/billings', async (req, res) => { // 결제
       term = results[0].term
     })
 
+    console.log(paymentResult.data)
+    console.log(paymentResult.data.response)
     const code = paymentResult.data.code
     const status = paymentResult.data.response.status
     if (code === 0) { // 카드사 통신에 성공(실제 승인 성공 여부는 추가 판단이 필요합니다.)

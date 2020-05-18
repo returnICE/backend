@@ -8,6 +8,8 @@ var Seller = db.Seller
 var SubItem = db.SubItem
 var SubMenu = db.SubMenu
 var Menu = db.Menu
+var EatenLog = db.EatenLog
+var Customer = db.Customer
 
 router.get('/', async (req, res, next) => {
   try {
@@ -165,6 +167,30 @@ router.delete('/product/menu/:menuId', function (req, res) {
       Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: req.params.menuId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
+    }
+  })
+})
+
+// 구독권 + 매장 메뉴들 목록 조회
+router.get('/accept', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      const customer = await EatenLog.findAll({
+        include: [{
+          model: Menu,
+          attributes: ['menuName'],
+          where: { sellerId: decoded.sellerId }
+        }, {
+          model: Customer,
+          attributes: ['name']
+        }],
+        attributes: ['eatenDate', 'eatenId']
+      })
+      res.json({ success: true, customer })
+    } catch (err) {
+      res.json({ success: false, err })
     }
   })
 })

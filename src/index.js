@@ -26,6 +26,9 @@ app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'ejs')
 app.engine('html', require('ejs').renderFile)
 
+const cors = require('cors')
+
+app.use(cors())
 app.use('/', homeRouter)
 app.use('/upload', uploadRouter)
 app.use('/users', usersRouter)

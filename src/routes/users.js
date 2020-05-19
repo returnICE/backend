@@ -4,8 +4,8 @@ var async = require('async')
 var crypto = require('crypto')
 var db = require('../models/index')
 var Customer = db.Customer
-// var SubItem = db.SubItem
-// var Seller = db.Seller
+var EatenLog = db.EatenLog
+var Menu = db.Menu
 // var SubedItem = db.SubedItem
 var jwt = require('jsonwebtoken')
 
@@ -151,6 +151,29 @@ router.get('/sub/:subedId', async (req, res, next) => {
 
   res.json({ success: true, subedItem: subedItem })
 })
+
+
+// eatenlog 
+router.get('/accept', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      const customer = await EatenLog.findAll({
+        include: [{
+          model: Menu,
+          attributes: ['menuName'],
+        }],
+        where: { customerId: decoded.customerId },
+        attributes: ['eatenDate', 'eatenId']
+      })
+      res.json({ success: true, customer })
+    } catch (err) {
+      res.json({ success: false, err })
+    }
+  })
+})
+
 module.exports = router
 
 function checkUserRegValidation (req, res, next) { // 중복 확인

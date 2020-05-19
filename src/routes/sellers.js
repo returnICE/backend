@@ -171,7 +171,7 @@ router.delete('/product/menu/:menuId', function (req, res) {
   })
 })
 
-// 구독권 + 매장 메뉴들 목록 조회
+// 음식점 eatenlog 
 router.get('/accept', (req, res) => {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
@@ -218,11 +218,18 @@ router.put('/myinfo', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
+      if(req.body.pw){
       var salt = Math.round((new Date().valueOf() * Math.random()))
       var pw = crypto.createHash('sha512').update(req.body.pw + salt).digest('hex')
       Seller.update({ pw, salt }, { where: { sellerId: decoded.sellerId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
+      }
+      else{
+        Seller.update({ ...req.body }, { where: { sellerId: decoded.sellerId } })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
+      }
     }
   })
 })

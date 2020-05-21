@@ -10,7 +10,6 @@ var SubMenu = db.SubMenu
 var Menu = db.Menu
 var EatenLog = db.EatenLog
 var Customer = db.Customer
-var PayLog = db.PayLog
 
 router.get('/', async (req, res, next) => {
   try {
@@ -205,7 +204,7 @@ router.get('/data/revenue', (req, res) => {
       var values = {
         sellerId: decoded.sellerId
       }
-      var query = "SELECT PayLog.payDate, t1.price from PayLog  join (SELECT SubItem.subId, SubItem.price from SubItem  where SubItem.sellerId = :sellerId) as t1 where ( t1.subId = PayLog.subId )"
+      var query = 'SELECT PayLog.payDate, t1.price from PayLog  join (SELECT SubItem.subId, SubItem.price from SubItem  where SubItem.sellerId = :sellerId) as t1 where ( t1.subId = PayLog.subId )'
       var paylog = []
       var resultPayData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       var resultsubNumData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -221,9 +220,9 @@ router.get('/data/revenue', (req, res) => {
             price: s.price
           })
         }
-        for(var s of paylog){
-          var payDate = new Date(s.payDate)
-          resultPayData[11 - (date.getMonth() - payDate.getMonth())] += s.price
+        for (var f of paylog) {
+          var payDate = new Date(f.payDate)
+          resultPayData[11 - (date.getMonth() - payDate.getMonth())] += f.price
           resultsubNumData[11 - (date.getMonth() - payDate.getMonth())] += 1
         }
       })

@@ -112,7 +112,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
   const subedId = req.params.subedId
   var subedItem = []
 
-  var query = 'SELECT T1.startDate, T1.endDate, T1.term, T1.limitTimes, T1.usedTimes, T2.subId, T2.subName, T2.price, T3.sellerId, T3.name FROM SubedItem T1 join SubItem T2 join .Seller T3 WHERE T2.sellerId = T3.sellerId AND T1.subId = T2.subId AND T1.subedId = :subedId;'
+  var query = 'SELECT T1.startDate, T1.endDate, T1.term, T1.limitTimes, T1.usedTimes, T1.subedId, T2.subId, T2.subName, T2.price, T3.sellerId, T3.name FROM SubedItem T1 join SubItem T2 join .Seller T3 WHERE T2.sellerId = T3.sellerId AND T1.subId = T2.subId AND T1.subedId = :subedId;'
   var values = {
     subedId: subedId
   }
@@ -123,6 +123,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
         term: s.term,
         limitTimes: s.limitTimes,
         usedTimes: s.usedTimes,
+        subedId: s.subedId,
         subId: s.subId,
         subName: s.subName,
         sellerId: s.sellerId,
@@ -134,7 +135,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
   })
 
   for (var i = 0; i < subedItem.length; i++) {
-    query = 'SELECT T3.menuName, T3.price, T3.avgScore FROM SubMenu T2 join Menu T3 WHERE T2.subId = :subId AND T2.menuId = T3.menuId;'
+    query = 'SELECT T3.menuId, T3.menuName, T3.price, T3.avgScore FROM SubMenu T2 join Menu T3 WHERE T2.subId = :subId AND T2.menuId = T3.menuId;'
     values = {
       subId: subedItem[i].subId
     }
@@ -143,7 +144,8 @@ router.get('/sub/:subedId', async (req, res, next) => {
         subedItem[i].menu.push({
           menuName: s.menuName,
           price: s.price,
-          avgScore: s.avgScore
+          avgScore: s.avgScore,
+          menuId: s.menuId
         })
       }
     })
@@ -152,8 +154,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
   res.json({ success: true, subedItem: subedItem })
 })
 
-
-// eatenlog 
+// eatenlog
 router.get('/accept', (req, res) => {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
@@ -162,7 +163,7 @@ router.get('/accept', (req, res) => {
       const customer = await EatenLog.findAll({
         include: [{
           model: Menu,
-          attributes: ['menuName'],
+          attributes: ['menuName']
         }],
         where: { customerId: decoded.customerId },
         attributes: ['eatenDate', 'eatenId']
@@ -175,6 +176,23 @@ router.get('/accept', (req, res) => {
 })
 
 module.exports = router
+
+// 소비자 승인 로그 조회
+router.get('/accept', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      var query = 'SELECT T1.eatenId, T1.eatenDate, T1.score, T1.enterpriseId, T2.menuName, T2.price FROM EatenLog T1 join Menu T2 WHERE T1.customerId = :customerId AND T1.menuId = T2.menuId;'
+      var values = { // query에서 :customerId -> decode.customerId로 변환
+        customerId: decoded.customerId
+      }
+      db.sequelize.query(query, { replacements: values }).spread(function (results, data) { // results 뭐하는건지 모르겠음
+        return res.json({ success: true, data })
+      })
+    }
+  })
+})
 
 function checkUserRegValidation (req, res, next) { // 중복 확인
   var isValid = true

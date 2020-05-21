@@ -52,7 +52,7 @@ router.post('/login', async (req, res, next) => {
   }
 })
 
-// 구독중인 소비자 현황 - 개발중
+// 구독중인 소비자 현황
 router.get('/customer', (req, res) => {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
@@ -171,7 +171,7 @@ router.delete('/product/menu/:menuId', function (req, res) {
   })
 })
 
-// 음식점 eatenlog 
+// 음식점 eatenlog
 router.get('/accept', (req, res) => {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
@@ -180,7 +180,7 @@ router.get('/accept', (req, res) => {
       const customer = await EatenLog.findAll({
         include: [{
           model: Menu,
-          attributes: ['menuName'],
+          attributes: ['menuName', 'price'],
           where: { sellerId: decoded.sellerId }
         }, {
           model: Customer,
@@ -218,17 +218,16 @@ router.put('/myinfo', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      if(req.body.pw){
-      var salt = Math.round((new Date().valueOf() * Math.random()))
-      var pw = crypto.createHash('sha512').update(req.body.pw + salt).digest('hex')
-      Seller.update({ pw, salt }, { where: { sellerId: decoded.sellerId } })
-        .then(() => { return res.json({ success: true }) })
-        .catch((err) => { return res.json({ success: false, err }) })
-      }
-      else{
+      if (req.body.pw) {
+        var salt = Math.round((new Date().valueOf() * Math.random()))
+        var pw = crypto.createHash('sha512').update(req.body.pw + salt).digest('hex')
+        Seller.update({ pw, salt }, { where: { sellerId: decoded.sellerId } })
+          .then(() => { return res.json({ success: true }) })
+          .catch((err) => { return res.json({ success: false, err }) })
+      } else {
         Seller.update({ ...req.body }, { where: { sellerId: decoded.sellerId } })
-        .then(() => { return res.json({ success: true }) })
-        .catch((err) => { return res.json({ success: false, err }) })
+          .then(() => { return res.json({ success: true }) })
+          .catch((err) => { return res.json({ success: false, err }) })
       }
     }
   })

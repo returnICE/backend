@@ -10,6 +10,7 @@ var SubMenu = db.SubMenu
 var Menu = db.Menu
 var EatenLog = db.EatenLog
 var Customer = db.Customer
+var PayLog = db.PayLog
 
 router.get('/', async (req, res, next) => {
   try {
@@ -189,6 +190,46 @@ router.get('/accept', (req, res) => {
         attributes: ['eatenDate', 'eatenId']
       })
       res.json({ success: true, customer })
+    } catch (err) {
+      res.json({ success: false, err })
+    }
+  })
+})
+
+// 수익
+router.get('/data/revenue', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      var values = {
+        sellerId: decoded.sellerId
+      }
+      var query = "SELECT PayLog.payDate, t1.price from PayLog  join (SELECT SubItem.subId, SubItem.price from SubItem  where SubItem.sellerId = :sellerId) as t1 where ( t1.subId = PayLog.subId )"
+      var paylog = []
+      var resultPayData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      var resultsubNumData = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      var resultData = {
+        resultPayData: [],
+        resultsubNumData: []
+      }
+      var date = new Date()
+      await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
+        for (var s of subdata) {
+          paylog.push({
+            payDate: s.payDate,
+            price: s.price
+          })
+        }
+        for(var s of paylog){
+          var payDate = new Date(s.payDate)
+          resultPayData[11 - (date.getMonth() - payDate.getMonth())] += s.price
+          resultsubNumData[11 - (date.getMonth() - payDate.getMonth())] += 1
+        }
+      })
+      resultData.resultPayData = resultPayData
+      resultData.resultsubNumData = resultsubNumData
+      res.json({ success: true, resultData })
     } catch (err) {
       res.json({ success: false, err })
     }

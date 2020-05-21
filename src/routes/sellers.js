@@ -52,7 +52,7 @@ router.post('/login', async (req, res, next) => {
   }
 })
 
-// 구독중인 소비자 현황 - 개발중
+// 구독중인 소비자 현황
 router.get('/customer', (req, res) => {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {

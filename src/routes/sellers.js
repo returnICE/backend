@@ -171,7 +171,7 @@ router.delete('/product/menu/:menuId', function (req, res) {
   })
 })
 
-// 구독권 + 매장 메뉴들 목록 조회
+// 로그
 router.get('/accept', (req, res) => {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
@@ -180,7 +180,7 @@ router.get('/accept', (req, res) => {
       const customer = await EatenLog.findAll({
         include: [{
           model: Menu,
-          attributes: ['menuName'],
+          attributes: ['menuName', 'price'],
           where: { sellerId: decoded.sellerId }
         }, {
           model: Customer,

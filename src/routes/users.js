@@ -4,8 +4,8 @@ var async = require('async')
 var crypto = require('crypto')
 var db = require('../models/index')
 var Customer = db.Customer
-var Menu = db.Menu
-var EatenLog = db.EatenLog
+// var Menu = db.Menu
+// var EatenLog = db.EatenLog
 // var SubItem = db.SubItem
 // var Seller = db.Seller
 // var SubedItem = db.SubedItem
@@ -58,7 +58,6 @@ router.get('/myinfo', function (req, res) {
     }
   })
 })
-
 
 // 소비자 정보 수정 -> 비밀번호변경
 router.put('/myinfo', function (req, res) {
@@ -158,7 +157,7 @@ router.get('/sub/:subedId', async (req, res, next) => {
 })
 module.exports = router
 
-//소비자 승인 로그 조회
+// 소비자 승인 로그 조회
 router.get('/accept', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {

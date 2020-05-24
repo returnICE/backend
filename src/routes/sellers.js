@@ -149,7 +149,6 @@ router.delete('/product/sub/:subId', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      console.log(req.params.subId)
       SubItem.destroy({ where: { sellerId: decoded.sellerId, subId: req.params.subId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
@@ -163,7 +162,6 @@ router.delete('/product/menu/:menuId', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      console.log(req.params.menuId)
       Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: req.params.menuId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
@@ -229,6 +227,48 @@ router.get('/data/revenue', (req, res) => {
       resultData.resultPayData = resultPayData
       resultData.resultsubNumData = resultsubNumData
       res.json({ success: true, resultData })
+    } catch (err) {
+      res.json({ success: false, err })
+    }
+  })
+})
+
+// 메뉴별 별점
+router.get('/data/menu', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      var values = {
+        sellerId: decoded.sellerId
+      }
+      var query = 'select t1.menuId, t1.menuName, EatenLog.eatenDate, EatenLog.score from (select menuId, menuName from Menu where Menu.sellerId = :sellerId) as t1 join EatenLog where (EatenLog.menuId = t1.menuId)'
+      var date = new Date()
+      var data = []
+      await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
+        for (const s of subdata) {
+          var check = false
+          var tempDate = new Date(s.eatenDate)
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].menuId === s.menuId) {
+              check = true
+              data[i].score[11 - (date.getMonth() - tempDate.getMonth())] += s.score
+              data[i].count[11 - (date.getMonth() - tempDate.getMonth())] += 1
+            }
+          }
+          if (check === false) {
+            data.push({
+              menuId: s.menuId,
+              menuName: s.menuName,
+              count: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              score: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            })
+            data[data.length - 1].count[11 - (date.getMonth() - tempDate.getMonth())] += 1
+            data[data.length - 1].score[11 - (date.getMonth() - tempDate.getMonth())] += s.score
+          }
+        }
+      })
+      res.json({ success: true, data })
     } catch (err) {
       res.json({ success: false, err })
     }

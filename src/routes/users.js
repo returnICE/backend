@@ -174,6 +174,7 @@ router.put('/sub/:subedId', function (req, res) {
     }
   })
 })
+
 // eatenlog
 router.get('/accept', (req, res) => {
   var token = req.headers['x-access-token']

@@ -154,6 +154,24 @@ router.get('/sub/:subedId', async (req, res, next) => {
   res.json({ success: true, subedItem: subedItem })
 })
 
+// 자동 결제 취소 : 구독 해지
+router.put('/sub/:subedId', function (req, res) {
+  const subedId = req.params.subedId
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      var query = 'UPDATE SubedItem SET autopay = 0 WHERE customerId = :customerId AND subedId = :subedId;'
+      var values = {
+        customerId: decoded.customerId,
+        subedId: subedId
+      }
+      db.sequelize.query(query, { replacements: values }).spread(function (results) { // results 뭐하는건지 모르겠음
+        return res.json({ success: true })
+      })
+    }
+  })
+})
 // eatenlog
 router.get('/accept', (req, res) => {
   var token = req.headers['x-access-token']

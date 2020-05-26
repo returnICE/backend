@@ -52,6 +52,43 @@ router.post('/login', async (req, res, next) => {
   }
 })
 
+// 기업 목록 조회
+router.get('/enterprise', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    var values = {
+      sellerId: decoded.sellerId
+    }
+    var enterpriseData = []
+    var query = 'select Enterprise.enterpriseId,Enterprise.name, Enterprise.phone, Enterprise.address, Enterprise.amountPerDay, Contract.approval from Contract, Enterprise where Contract.sellerId = :sellerId and Contract.enterpriseId = Enterprise.enterpriseId;'
+    await db.sequelize.query(query, { replacements: values }).spread(async function (results, subdata) {
+      for (var s of subdata) {
+        enterpriseData.push({
+          name: s.name,
+          phone: s.phone,
+          address: s.address,
+          amountPerDay: s.amountPerDay,
+          approval: s.approval,
+          amountMonth: 0
+        })
+        var value2 = {
+          sellerId: decoded.sellerId,
+          enterpriseId: s.enterpriseId
+        }
+        var query2 = 'select Menu.price, t.enterpriseId, t.eatenDate from Menu, (select EatenLog.enterpriseId, EatenLog.menuId, EatenLog.eatenDate from EatenLog) as t where Menu.sellerId = :sellerId and t.enterpriseId = :enterpriseId and Menu.menuId = t.menuId;'
+        await db.sequelize.query(query2, {replacements: value2}).spread(function (results, subdata) {
+          for (var a of subdata) {
+            enterpriseData.amountMonth += a.price
+          }
+        })
+      }
+    })
+    console.log(enterpriseData)
+    res.json({ success: true, data: enterpriseData })
+  })
+})
+
 // 구독중인 소비자 현황
 router.get('/customer', (req, res) => {
   var token = req.headers['x-access-token']
@@ -226,6 +263,7 @@ router.get('/data/revenue', (req, res) => {
       })
       resultData.resultPayData = resultPayData
       resultData.resultsubNumData = resultsubNumData
+      console.log(resultData)
       res.json({ success: true, resultData })
     } catch (err) {
       res.json({ success: false, err })

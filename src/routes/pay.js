@@ -3,6 +3,7 @@ var router = express.Router()
 var db = require('../models/index')
 var axios = require('axios')
 var SubedItem = db.SubedItem
+var PayLog = db.PayLog
 
 router.get('/', async function (req, res, next) { // 결제창 생성
   var subId = Number(req.query.subId)
@@ -101,6 +102,11 @@ router.post('/billings', async (req, res) => { // 결제
           limitTimes: limitTimes,
           auto: true,
           usedTimes: 0
+        })
+        PayLog.create({
+          customerId: customerUid,
+          payDate: new Date().getTime(),
+          subId: subId
         })
       } else { // 카드 승인 실패 (ex. 고객 카드 한도초과, 거래정지카드, 잔액부족 등)
         // paymentResult.status : failed 로 수신됩니다.

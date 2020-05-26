@@ -77,7 +77,7 @@ router.get('/enterprise', (req, res) => {
           enterpriseId: s.enterpriseId
         }
         var query2 = 'select Menu.price, t.enterpriseId, t.eatenDate from Menu, (select EatenLog.enterpriseId, EatenLog.menuId, EatenLog.eatenDate from EatenLog) as t where Menu.sellerId = :sellerId and t.enterpriseId = :enterpriseId and Menu.menuId = t.menuId;'
-        await db.sequelize.query(query2, {replacements: value2}).spread(function (results, subdata) {
+        await db.sequelize.query(query2, { replacements: value2 }).spread(function (results, subdata) {
           for (var a of subdata) {
             enterpriseData.amountMonth += a.price
           }

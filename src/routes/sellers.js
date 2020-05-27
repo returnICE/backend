@@ -84,7 +84,6 @@ router.get('/enterprise', (req, res) => {
         })
       }
     })
-    console.log(enterpriseData)
     res.json({ success: true, data: enterpriseData })
   })
 })
@@ -170,6 +169,7 @@ router.post('/product/sub', (req, res) => {
       var arr = []
       req.body.menuId.map((menuId) => arr.push({ menuId, subId: result.subId }))
       SubMenu.bulkCreate(arr).then((data) => {
+        checkSubPrice(decoded.sellerId)
         res.json({ success: true, data })
       }).catch((err) => {
         res.json({ success: false, err })
@@ -187,7 +187,10 @@ router.delete('/product/sub/:subId', function (req, res) {
     if (err) return res.json({ success: false, err })
     else {
       SubItem.destroy({ where: { sellerId: decoded.sellerId, subId: req.params.subId } })
-        .then(() => { return res.json({ success: true }) })
+        .then(() => {
+          checkSubPrice(decoded.sellerId)
+          return res.json({ success: true })
+        })
         .catch((err) => { return res.json({ success: false, err }) })
     }
   })
@@ -263,7 +266,6 @@ router.get('/data/revenue', (req, res) => {
       })
       resultData.resultPayData = resultPayData
       resultData.resultsubNumData = resultsubNumData
-      console.log(resultData)
       res.json({ success: true, resultData })
     } catch (err) {
       res.json({ success: false, err })
@@ -411,5 +413,21 @@ function checkId (req, res, next) {
     } else {
       next()
     }
+  })
+}
+
+async function checkSubPrice (sellerId) {
+  var values = {
+    sellerId: sellerId
+  }
+  var query = 'select SubItem.price from SubItem where SubItem.sellerId = :sellerId'
+  await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
+    var minPrice = 0x0fffffff
+    for (var s of subdata) {
+      if (s.price < minPrice) {
+        minPrice = s.price
+      }
+    }
+    Seller.update({ minPrice }, { where: { sellerId: sellerId } })
   })
 }

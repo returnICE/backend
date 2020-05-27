@@ -49,6 +49,10 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true,
       autoIncrement: true
+    },
+    resetDate: {
+      type: DataTypes.DATE,
+      allowNull: true
     }
   }, {
     tableName: 'SubedItem'

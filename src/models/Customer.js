@@ -27,6 +27,10 @@ module.exports = function(sequelize, DataTypes) {
     birth: {
       type: DataTypes.STRING(32),
       allowNull: false
+    },
+    fcmtoken: {
+      type: DataTypes.STRING(400),
+      allowNull: true
     }
   }, {
     tableName: 'Customer'

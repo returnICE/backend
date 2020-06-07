@@ -8,6 +8,8 @@ var EatenLog = db.EatenLog
 var Menu = db.Menu
 var Member = db.Member
 var Enterprise = db.Enterprise
+var CampaignLog = db.CampaignLog
+var Campaign = db.Campaign
 // var SubedItem = db.SubedItem
 var jwt = require('jsonwebtoken')
 
@@ -204,6 +206,48 @@ router.post('/enterprise', findEnterprise, (req, res) => {
     try {
       var member = await Member.findOrCreate({ where: { customerId: decoded.customerId, enterpriseId: req.body.enterpriseId } })
       res.json({ success: true, member })
+    } catch (err) {
+      res.json({ success: false, err })
+    }
+  })
+})
+
+router.get('/campaign', (req, res) => {
+  var token = req.headers['x-access-token']
+  var campaign = []
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      campaign = await CampaignLog.findAll({
+        include: [{
+          model: Campaign,
+          attributes: ['sellerId', 'title', 'body', 'transmitDate']
+        }],
+        where: { customerId: decoded.customerId }
+      })
+    } catch (err) {
+      res.json({ success: false, err })
+      return
+    }
+    res.json({ success: true, campaign: campaign })
+  })
+})
+
+router.post('/campaign', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      var _fcmtoken = req.body.fcmtoken
+
+      var query = 'update Customer set fcmtoken = :fcmtoken where customerId = :customerId;'
+      var values = {
+        customerId: decoded.customerId,
+        fcmtoken: _fcmtoken
+      }
+      db.sequelize.query(query, { replacements: values }).spread(function (results) { // results 뭐하는건지 모르겠음
+        return res.json({ success: true })
+      })
     } catch (err) {
       res.json({ success: false, err })
     }

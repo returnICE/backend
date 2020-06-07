@@ -4,12 +4,23 @@ var async = require('async')
 var crypto = require('crypto')
 var jwt = require('jsonwebtoken')
 var db = require('../models/index')
+var firebase = require('firebase-admin')
+
+var sequelize = require('sequelize')
+
 var Seller = db.Seller
 var SubItem = db.SubItem
 var SubMenu = db.SubMenu
 var Menu = db.Menu
 var EatenLog = db.EatenLog
 var Customer = db.Customer
+var Campaign = db.Campaign
+var CampaignLog = db.CampaignLog
+
+var serviceAccount = require('../config/swcapston-firebase-adminsdk.json')
+firebase.initializeApp({
+  credential: firebase.credential.cert(serviceAccount)
+})
 
 router.get('/', async (req, res, next) => {
   try {
@@ -369,6 +380,62 @@ router.delete('/myinfo', function (req, res) {
 // 음식점 아이디 중복 확인
 router.post('/checkid', checkId, function (req, res) {
   res.json({ success: true })
+})
+
+router.post('/campaign', async (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    var customer = {}
+    var title = req.body.title
+    var body = req.body.body
+    var sellername = req.body.sellername
+
+    var cst = req.body.target
+    try {
+      customer = await Customer.findAll({
+        where: { customerId: cst },
+        attributes: [[sequelize.literal('DISTINCT `fcmtoken`'), 'fcmtoken']],
+        raw: true
+      })
+    } catch (err) {
+      res.json({ success: false, err })
+      return
+    }
+    var fcmTargetTokenList = customer.map((v) => { return v.fcmtoken })
+    var fcmMessage = {
+      notification: {
+        title: title,
+        body: body
+      },
+      data: {
+        sellername: sellername,
+        sendtime: (new Date()).toDateString.toString()
+      },
+      tokens: fcmTargetTokenList
+    }
+
+    firebase.messaging().sendMulticast(fcmMessage)
+      .then(() => {
+        console.log('메세지 성공')
+
+        Campaign.create({ ...req.body, sellerId: 'dbr11' }).then((data) => {
+          var camplog = cst.map((v) => {
+            return { customerId: v, campaignId: data.campaignId }
+          })
+          console.log(camplog)
+          CampaignLog.bulkCreate(camplog).then((data) => {
+            console.log('캠페인 로그 생성')
+          })
+        }).catch((err) => {
+          res.json({ success: false, err })
+        })
+        res.json({ success: true })
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  })
 })
 
 module.exports = router

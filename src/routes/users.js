@@ -10,6 +10,7 @@ var Member = db.Member
 var Enterprise = db.Enterprise
 var CampaignLog = db.CampaignLog
 var Campaign = db.Campaign
+var Seller = db.Seller
 // var SubedItem = db.SubedItem
 var jwt = require('jsonwebtoken')
 
@@ -221,7 +222,11 @@ router.get('/campaign', (req, res) => {
       campaign = await CampaignLog.findAll({
         include: [{
           model: Campaign,
-          attributes: ['sellerId', 'title', 'body', 'transmitDate']
+          attributes: ['sellerId', 'title', 'body', 'transmitDate'],
+          include:[{
+            model: Seller,
+            attributes: ['name']
+          }]
         }],
         where: { customerId: decoded.customerId }
       })

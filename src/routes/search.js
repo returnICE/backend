@@ -12,8 +12,7 @@ router.post('/', async (req, res, next) => {
     var lon = req.body.lon
     var page = req.body.page
     var x = req.body.zoom
-    var listcount = 10
-
+    var listcount = 6
     if (x === '-1.0') {
       const sellers = await Seller.findAll({
         raw: true

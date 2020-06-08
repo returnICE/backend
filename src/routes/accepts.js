@@ -5,7 +5,6 @@ var db = require('../models/index')
 var EatenLog = db.EatenLog
 var SubedItem = db.SubedItem
 var Menu = db.Menu
-var moment = require('moment')
 
 router.post('/customer', function (req, res) {
   var token = req.headers['x-access-token']
@@ -49,25 +48,6 @@ router.post('/score', function (req, res) {
         }
       })
   })
-})
-const { Op } = require('sequelize')
-
-router.get('/', async (req, res, next) => {
-  try {
-    var t = moment()
-    const data = await SubedItem.findAll({
-      where: { resetDate: { [Op.lte]: t } }
-    })
-    for (var i of data) {
-      // console.log(i.resetDate)
-      // console.log(moment(i.resetDate).add(i.term,'hours'))
-      i.update({ resetDate: moment().add(i.term, 'hours'), usedTimes: 0 }) // resetDate를 지금 시간에서 term(hour)만큼 증가
-      // i.update({ resetDate: moment(i.resetDate).add(i.term, 'hours'), usedTimes: 0 }) //resetDate를 resetdate에서 term(hour)만큼 증가
-    }
-    return res.json({ data })
-  } catch (err) {
-    return res.json({ err })
-  }
 })
 
 module.exports = router

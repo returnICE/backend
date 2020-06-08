@@ -20,12 +20,16 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: true
     },
-    info: {
+    body: {
       type: DataTypes.STRING(256),
       allowNull: true
     },
-    birthOp: {
+    targetOp: {
       type: DataTypes.INTEGER(4),
+      allowNull: true
+    },
+    title: {
+      type: DataTypes.STRING(45),
       allowNull: true
     }
   }, {

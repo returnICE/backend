@@ -282,7 +282,7 @@ router.get('/campaign', (req, res) => {
         include: [{
           model: Campaign,
           attributes: ['sellerId', 'title', 'body', 'transmitDate'],
-          include:[{
+          include: [{
             model: Seller,
             attributes: ['name']
           }]

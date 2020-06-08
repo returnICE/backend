@@ -108,10 +108,11 @@ router.get('/customer', (req, res) => {
       sellerId: decoded.sellerId
     }
     var customerData = []
-    var query = 'SELECT T3.name, T3.phone, T3.birth, T1.subName, T2.endDate, T2.limitTimes, T2.usedTimes, T2.autoPay FROM ( SELECT subName, subId FROM SubItem where SubItem.sellerId = :sellerId ) as T1 join SubedItem as T2 join Customer as T3 where T1.subId = T2.subId and T2.customerId = T3.customerId;'
+    var query = 'SELECT T3.customerId, T3.name, T3.phone, T3.birth, T1.subName, T2.endDate, T2.limitTimes, T2.usedTimes, T2.autoPay FROM ( SELECT subName, subId FROM SubItem where SubItem.sellerId = :sellerId ) as T1 join SubedItem as T2 join Customer as T3 where T1.subId = T2.subId and T2.customerId = T3.customerId;'
     await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
       for (var s of subdata) {
         customerData.push({
+          customerId: s.customerId,
           name: s.name,
           phone: s.phone,
           birth: s.birth,
@@ -155,6 +156,30 @@ router.get('/product', (req, res) => {
     } catch (err) {
       res.json(err)
     }
+  })
+})
+
+// 기업 이용 고객 목록
+router.get('/enterprise/customer', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    var values = {
+      sellerId: decoded.sellerId
+    }
+    var customerData = []
+    var query = 'select Customer.name, Customer.customerId, Customer.birth,  Customer.phone from (select Member.CustomerId from Member, (SELECT enterpriseId from Contract where sellerId = :sellerId) as t where t.enterpriseId = Member.CustomerId) as t2, Customer where t2.customerId = Customer.customerId;'
+    await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
+      for (var s of subdata) {
+        customerData.push({
+          customerId: s.customerId,
+          name: s.name,
+          phone: s.phone,
+          birth: s.birth
+        })
+      }
+    })
+    res.json({ success: true, data: customerData })
   })
 })
 

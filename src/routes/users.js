@@ -159,10 +159,69 @@ router.get('/sub/:subedId', async (req, res, next) => {
   res.json({ success: true, subedItem: subedItem })
 })
 
+// 소속 기업 조회
+router.get('/enterprise', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      Member.findOne({ where: { customerId: decoded.customerId } }).then((enterprisedata) => {
+        return res.json({ success: true, enterprisedata })
+      }).catch((err) => {
+        return res.json({ succes: false, err })
+      })
+    }
+  })
+})
+
+// B2B 식당 조회
+router.get('/enterprise/:enterpriseId', async (req, res, next) => {
+  const enterpriseId = req.params.enterpriseId
+  var b2bdata = []
+
+  var query = 'SELECT T2.sellerId, T2.name, T2.minPrice, T2.imgURL FROM (SELECT sellerID FROM Contract WHERE enterpriseId = :enterpriseId AND approval = 1) T1 JOIN Seller T2 WHERE T1.sellerId = T2.sellerId'
+  var values = {
+    enterpriseId: enterpriseId
+  }
+  await db.sequelize.query(query, { replacements: values }).spread(function (results, dinnerdata) { // results 뭐하는건지 모르겠음
+    for (var s of dinnerdata) {
+      b2bdata.push({
+        sellerId: s.sellerId,
+        name: s.name,
+        minPrice: s.minPrice,
+        imgURL: s.imgURL
+      })
+    }
+  })
+
+  res.json({ success: true, b2bdata: b2bdata })
+})
+// 메뉴 조회
+router.get('/menu/:sellerId', async (req, res, next) => {
+  const sellerId = req.params.sellerId
+  var menuItem = []
+  var query = 'SELECT menuId, menuName, price, avgScore FROM Menu T1 WHERE sellerId = :sellerId'
+  var values = {
+    sellerId: sellerId
+  }
+  await db.sequelize.query(query, { replacements: values }).spread(function (results, menudata) { // results 뭐하는건지 모르겠음
+    for (var s of menudata) {
+      menuItem.push({
+        menuName: s.menuName,
+        price: s.price,
+        avgScore: s.avgScore,
+        menuId: s.menuId
+      })
+    }
+
+    res.json({ success: true, menuItem: menuItem })
+  })
+})
+
 // 자동 결제 취소 : 구독 해지
 router.put('/sub/:subedId', function (req, res) {
-  const subedId = req.params.subedId
   var token = req.headers['x-access-token']
+  const subedId = req.params.subedId
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
@@ -223,7 +282,7 @@ router.get('/campaign', (req, res) => {
         include: [{
           model: Campaign,
           attributes: ['sellerId', 'title', 'body', 'transmitDate'],
-          include:[{
+          include: [{
             model: Seller,
             attributes: ['name']
           }]

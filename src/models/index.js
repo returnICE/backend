@@ -39,6 +39,7 @@ db.Enterprise.belongsToMany(db.Customer, { through: 'Member',foreignKey:'enterpr
 db.Customer.belongsToMany(db.Enterprise, { through: 'Member',foreignKey:'customerId' });
 db.CampaignLog.belongsTo(db.Customer,{foreignKey:'customerId'});
 db.CampaignLog.belongsTo(db.Campaign,{foreignKey:'campaignId'});
+db.Campaign.belongsTo(db.Seller,{foreignKey:'sellerId'});
 // db.Customer.belongsToMany(db.Campaign, { through: 'CampaignLog',foreignKey:'customerId' });
 // db.Campaign.belongsToMany(db.Customer, { through: 'CampaignLog',foreignKey:'campaignId' });
 

@@ -5,8 +5,9 @@ var crypto = require('crypto')
 var jwt = require('jsonwebtoken')
 var db = require('../models/index')
 var Enterprise = db.Enterprise
-var SubItem = db.SubItem
-var Menu = db.Menu
+var Contract = db.Contract
+var Customer = db.Customer
+var Member = db.Member
 
 router.get('/', async (req, res, next) => {
   try {
@@ -56,7 +57,7 @@ router.get('/myinfo', function (req, res) {
     if (err) return res.json({ success: false, err })
     else {
       Enterprise.findByPk(decoded.enterpriseId).then((data) => {
-        delete data.pw
+        data.pw = ''
         return res.json({ success: true, data })
       }).catch((err) => {
         return res.json({ succes: false, err })
@@ -65,94 +66,38 @@ router.get('/myinfo', function (req, res) {
   })
 })
 
-// TODO 구독중인 소비자 현황 개발중
-router.get('/customer', (req, res) => {
+// 회사 정보 조회
+router.get('/member', function (req, res) {
   var token = req.headers['x-access-token']
-  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
-    var values = {
-      enterpriseId: decoded.enterpriseId
-    }
-    var customerData = []
-    var query = 'SELECT T3.name, T3.phone, T3.birth, T1.subName, T2.endDate, T2.limitTimes, T2.usedTimes, T2.autoPay FROM ( SELECT subName, subId FROM SubItem where SubItem.enterpriseId = :enterpriseId ) as T1 join SubedItem as T2 join Customer as T3 where T1.subId = T2.subId and T2.customerId = T3.customerId;'
-    await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
-      for (var s of subdata) {
-        customerData.push({
-          name: s.name,
-          phone: s.phone,
-          birth: s.birth,
-          subName: s.subName,
-          endDate: s.endDate,
-          limitTimes: s.limitTimes,
-          usedTimes: s.usedTimes,
-          autopay: s.autoPay
-        })
-      }
-    })
-    res.json({ success: true, data: customerData })
-  })
-})
-
-// TODO 구독권 + 매장 메뉴들 목록 조회
-router.get('/product', (req, res) => {
-  var token = req.headers['x-access-token']
-  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
-    if (err) return res.json({ success: false, err })
-    //  include: [ { model: Division, include: [ Department ] } ],
-    try {
-      const subItem = await SubItem.findAll({
+    else {
+      Member.findAll({
+        where: { enterpriseId: decoded.enterpriseId },
         include: [{
-          model: Menu,
-          attributes: ['menuName'],
-          through: { attributes: [] }
-        }],
-        where: {
-          enterpriseId: decoded.enterpriseId
-        },
-        attributes: ['subId', 'subName', 'info', 'price', 'limitTimes', 'term']
+          model: Customer,
+          attributes: ['customerId', 'name', 'phone', 'birth']
+        }]
+      }).then((data) => {
+        return res.json({ success: true, data })
+      }).catch((err) => {
+        return res.json({ succes: false, err })
       })
-      const menu = await Menu.findAll({
-        where: {
-          enterpriseId: decoded.enterpriseId
-        },
-        attributes: ['menuId', 'enterpriseId', 'menuName', 'info', 'price', 'avgScore']
-      })
-      res.json({ success: true, menu, subItem })
-    } catch (err) {
-      res.json(err)
     }
   })
 })
 
-// TODO 음식점 정보 수정 -> 비밀번호변경
-router.put('/myinfo', function (req, res) {
+router.post('/contract', function (req, res) {
   var token = req.headers['x-access-token']
-  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
     if (err) return res.json({ success: false, err })
-    else {
-      if (req.body.pw) {
-        var salt = Math.round((new Date().valueOf() * Math.random()))
-        var pw = crypto.createHash('sha512').update(req.body.pw + salt).digest('hex')
-        Enterprise.update({ pw, salt }, { where: { enterpriseId: decoded.enterpriseId } })
-          .then(() => { return res.json({ success: true }) })
-          .catch((err) => { return res.json({ success: false, err }) })
-      } else {
-        Enterprise.update({ ...req.body }, { where: { enterpriseId: decoded.enterpriseId } })
-          .then(() => { return res.json({ success: true }) })
-          .catch((err) => { return res.json({ success: false, err }) })
-      }
-    }
-  })
-})
-// TODO 음식점 정보 삭제
-router.delete('/myinfo', function (req, res) {
-  var token = req.headers['x-access-token']
-  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
-    if (err) return res.json({ success: false, err })
-    else {
-      Enterprise.destroy({ where: { enterpriseId: decoded.enterpriseId } })
-        .then(() => { return res.json({ success: true }) })
-        .catch((err) => { return res.json({ success: false, err }) })
+    try {
+      console.log(new Date(req.body.startDate))
+      var contract = await Contract.findOrCreate({ where: { enterpriseId: decoded.enterpriseId, sellerId: req.body.sellerId }, defaults: { ...req.body } })
+      return contract[1] ? res.json({ success: true, contract })
+        : res.json({ success: false, err: '중복계약' })
+    } catch (err) {
+      return res.json({ success: false, err })
     }
   })
 })

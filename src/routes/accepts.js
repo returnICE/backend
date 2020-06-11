@@ -4,7 +4,9 @@ var jwt = require('jsonwebtoken')
 var db = require('../models/index')
 var EatenLog = db.EatenLog
 var SubedItem = db.SubedItem
+var Member = db.Member
 var Menu = db.Menu
+var Enterprise = db.Enterprise
 var moment = require('moment')
 
 router.post('/customer', function (req, res) {
@@ -18,14 +20,39 @@ router.post('/customer', function (req, res) {
           data.increment({ usedTimes: 1 })
           EatenLog.create({ menuId: req.body.menuId, eatenDate: new Date(), customerId: decoded.customerId })
             .then((data) => res.json({ success: true, data }))
-            .catch((err) => res.json(err))
+            .catch((err) => res.json({ err }))
         }
       }).catch((err) => res.json({ success: false, err }))
   })
 })
 
 router.post('/enterprise', function (req, res) {
-  return res.json({ success: true })
+  var token = req.headers['x-access-token']
+  const price = req.body.price
+  const menuId = req.body.menuId
+  jwt.verify(token, process.env.JWT_KEY, async (err, decoded) => {
+    if (err) res.json({ success: false, err })
+    Member.findOne({
+      where: { customerId: decoded.customerId },
+      include: [{
+        model: Enterprise,
+        attributes: ['enterpriseId', 'amountPerDay', 'amountPerMonth']
+      }]
+    })
+      .then((data) => {
+        if (data.amountPerday + price > data.Enterprise.amountPerday || data.amountPerMonth + price > data.Enterprise.amountPerMonth) {
+          return res.json({ success: false, err: '한도초과' })
+        } else {
+          data.increment({ amountPerday: price })
+          data.increment({ amountPerMonth: price })
+
+          EatenLog.create({ menuId: menuId, eatenDate: new Date(), customerId: decoded.customerId, enterpriseId: data.Enterprise.enterpriseId })
+            .then((data) => res.json({ success: true, data }))
+            .catch((err) => res.json({ err }))
+        }
+      }).catch((err) => res.json({ success: false, err }))
+  })
+  // return res.json({ success: true })
 })
 
 router.post('/score', function (req, res) {

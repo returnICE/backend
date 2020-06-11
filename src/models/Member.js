@@ -28,6 +28,18 @@ module.exports = function(sequelize, DataTypes) {
         model: 'Customer',
         key: 'customerId'
       }
+    },
+    amountPerDay: {
+      type: DataTypes.INTEGER(11),
+      allowNull: true
+    },
+    amountPerMonth: {
+      type: DataTypes.INTEGER(11),
+      allowNull: true
+    },
+    resetDate: {
+      type: DataTypes.DATE,
+      allowNull: false
     }
   }, {
     tableName: 'Member'

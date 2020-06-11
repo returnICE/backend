@@ -27,6 +27,7 @@ Object.keys(db).forEach(function (modelName) {
   }
 })
 
+db.Member.belongsTo(db.Enterprise, {foreignKey: 'enterpriseId'});
 db.SubItem.belongsTo(db.Seller, { foreignKey: 'sellerId' });
 db.SubedItem.belongsTo(db.SubItem, { foreignKey: 'subId' });
 db.Menu.belongsToMany(db.SubItem, { through: 'SubMenu',foreignKey:'menuId' });

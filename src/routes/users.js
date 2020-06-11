@@ -159,14 +159,14 @@ router.get('/sub/:subedId', async (req, res, next) => {
   res.json({ success: true, subedItem: subedItem })
 })
 
-// 소속 기업 조회
+// member 조회
 router.get('/enterprise', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Member.findOne({ where: { customerId: decoded.customerId } }).then((enterprisedata) => {
-        return res.json({ success: true, enterprisedata })
+      Member.findOne({ where: { customerId: decoded.customerId } }).then((memberdata) => {
+        return res.json({ success: true, memberdata })
       }).catch((err) => {
         return res.json({ succes: false, err })
       })
@@ -174,8 +174,18 @@ router.get('/enterprise', function (req, res) {
   })
 })
 
-// B2B 식당 조회
+// 기업 조회
 router.get('/enterprise/:enterpriseId', async (req, res, next) => {
+  const enterpriseId = req.params.enterpriseId
+  Enterprise.findOne({ where: { enterpriseId: enterpriseId } }).then((enterprisedata) => {
+    res.json({ success: true, enterprisedata })
+  }).catch((err) => {
+    res.json({ succes: false, err })
+  })
+})
+
+// B2B 식당 조회
+router.get('/enterprise/seller/:enterpriseId', async (req, res, next) => {
   const enterpriseId = req.params.enterpriseId
   var b2bdata = []
 

@@ -66,7 +66,7 @@ router.get('/myinfo', function (req, res) {
   })
 })
 
-// 회사 정보 조회
+// 회사d원조회
 router.get('/member', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
@@ -87,6 +87,39 @@ router.get('/member', function (req, res) {
   })
 })
 
+// 회사조회
+router.put('/member', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      Member.update({...req.body},{
+        where: { enterpriseId: decoded.enterpriseId, customerId:req.body.customerId }
+      }).then(() => {
+        return res.json({ success: true })
+      }).catch((err) => {
+        return res.json({ succes: false, err })
+      })
+    }
+  })
+})
+
+// 회사조회
+router.delete('/member/:id', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      Member.destroy({
+        where: { memberId: req.params.id}
+      }).then(() => {
+        return res.json({ success: true })
+      }).catch((err) => {
+        return res.json({ succes: false, err })
+      })
+    }
+  })
+})
 router.post('/contract', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {

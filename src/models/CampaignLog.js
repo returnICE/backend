@@ -4,19 +4,11 @@ module.exports = function(sequelize, DataTypes) {
   return sequelize.define('CampaignLog', {
     customerId: {
       type: DataTypes.STRING(16),
-      allowNull: false,
-      references: {
-        model: 'Customer',
-        key: 'customerId'
-      }
+      allowNull: false
     },
     campaignId: {
       type: DataTypes.INTEGER(11),
-      allowNull: false,
-      references: {
-        model: 'Campaign',
-        key: 'campaignId'
-      }
+      allowNull: false
     },
     ccId: {
       type: DataTypes.INTEGER(11),

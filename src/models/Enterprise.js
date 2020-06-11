@@ -38,12 +38,14 @@ module.exports = function(sequelize, DataTypes) {
       unique: true
     },
     amountPerDay: {
-      type: DataTypes.STRING(64),
-      allowNull: true
+      type: DataTypes.INTEGER(11),
+      allowNull: true,
+      defaultValue: '0'
     },
     amountPerMonth: {
-      type: DataTypes.STRING(64),
-      allowNull: true
+      type: DataTypes.INTEGER(11),
+      allowNull: true,
+      defaultValue: '0'
     },
     lat: {
       type: "DOUBLE",

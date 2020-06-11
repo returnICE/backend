@@ -36,6 +36,7 @@ db.Customer.belongsToMany(db.SubItem, { through: 'SubedItem',foreignKey:'custome
 db.SubItem.belongsToMany(db.Customer, { through: 'SubedItem',foreignKey:'subId' });
 db.EatenLog.belongsTo(db.Menu, {foreignKey:'menuId'});
 db.EatenLog.belongsTo(db.Customer, {foreignKey:'customerId'});
+db.Member.belongsTo(db.Customer, {foreignKey:'customerId'});
 db.Enterprise.belongsToMany(db.Customer, { through: 'Member',foreignKey:'enterpriseId' });
 db.Customer.belongsToMany(db.Enterprise, { through: 'Member',foreignKey:'customerId' });
 db.EatenLog.belongsTo(db.Customer, {foreignKey:'customerId'});
@@ -59,7 +60,7 @@ async function resetDate(){
     return false
   }
 }
-resetDate()
+// resetDate()
 setInterval(resetDate, 3600000);
 
 // db.Customer.belongsToMany(db.Campaign, { through: 'CampaignLog',foreignKey:'customerId' });

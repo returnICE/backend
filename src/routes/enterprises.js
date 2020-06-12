@@ -93,8 +93,8 @@ router.put('/member', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Member.update({...req.body},{
-        where: { enterpriseId: decoded.enterpriseId, customerId:req.body.customerId }
+      Member.update({ ...req.body }, {
+        where: { enterpriseId: decoded.enterpriseId, customerId: req.body.customerId }
       }).then(() => {
         return res.json({ success: true })
       }).catch((err) => {
@@ -111,7 +111,7 @@ router.delete('/member/:id', function (req, res) {
     if (err) return res.json({ success: false, err })
     else {
       Member.destroy({
-        where: { memberId: req.params.id}
+        where: { memberId: req.params.id }
       }).then(() => {
         return res.json({ success: true })
       }).catch((err) => {

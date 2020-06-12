@@ -54,6 +54,10 @@ module.exports = function(sequelize, DataTypes) {
     lon: {
       type: "DOUBLE",
       allowNull: true
+    },
+    resetDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
     }
   }, {
     tableName: 'Enterprise'

@@ -2,6 +2,7 @@
 var fs = require('fs')
 const path = require('path')
 const Sequelize = require('sequelize')
+var moment = require('moment')
 // import {development,test,production} from '../config/config'
 
 const env = process.env.NODE_ENV || 'development'
@@ -36,11 +37,35 @@ db.Customer.belongsToMany(db.SubItem, { through: 'SubedItem',foreignKey:'custome
 db.SubItem.belongsToMany(db.Customer, { through: 'SubedItem',foreignKey:'subId' });
 db.EatenLog.belongsTo(db.Menu, {foreignKey:'menuId'});
 db.EatenLog.belongsTo(db.Customer, {foreignKey:'customerId'});
+db.Member.belongsTo(db.Customer, {foreignKey:'customerId'});
+db.Member.belongsTo(db.Enterprise, {foreignKey:'enterpriseId'});
 db.Enterprise.belongsToMany(db.Customer, { through: 'Member',foreignKey:'enterpriseId' });
 db.Customer.belongsToMany(db.Enterprise, { through: 'Member',foreignKey:'customerId' });
+db.EatenLog.belongsTo(db.Customer, {foreignKey:'customerId'});
 db.CampaignLog.belongsTo(db.Customer,{foreignKey:'customerId'});
 db.CampaignLog.belongsTo(db.Campaign,{foreignKey:'campaignId'});
 db.Campaign.belongsTo(db.Seller,{foreignKey:'sellerId'});
+
+const { Op } = require('sequelize')
+async function resetDate(){
+  console.log('subedItem date reset')
+  try {
+    var t = moment()
+    const data = await db.SubedItem.findAll({
+      where: { resetDate: { [Op.lte]: t } }
+    })
+    for (var i of data) {
+      i.update({ resetDate: moment(i.resetDate).add(i.term, 'hours'), usedTimes: 0 }) //resetDate를 resetdate에서 term(hour)만큼 증가
+    }
+    return true
+  } catch (err) {
+    console.log('err',err)
+    return false
+  }
+}
+// resetDate()
+setInterval(resetDate, 3600000);
+
 // db.Customer.belongsToMany(db.Campaign, { through: 'CampaignLog',foreignKey:'customerId' });
 // db.Campaign.belongsToMany(db.Customer, { through: 'CampaignLog',foreignKey:'campaignId' });
 

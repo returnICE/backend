@@ -31,15 +31,17 @@ module.exports = function(sequelize, DataTypes) {
     },
     amountPerDay: {
       type: DataTypes.INTEGER(11),
-      allowNull: true
+      allowNull: true,
+      defaultValue: '0'
     },
     amountPerMonth: {
       type: DataTypes.INTEGER(11),
-      allowNull: true
+      allowNull: true,
+      defaultValue: '0'
     },
     resetDate: {
-      type: DataTypes.DATE,
-      allowNull: false
+      type: DataTypes.DATEONLY,
+      allowNull: true
     }
   }, {
     tableName: 'Member'

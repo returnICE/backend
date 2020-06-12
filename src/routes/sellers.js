@@ -399,12 +399,12 @@ router.put('/enterprise/accept', function (req, res) {
       var enterpriseId = req.body.enterpriseId
       var approval = 1
       Contract.update({ approval }, { where: { sellerId: decoded.sellerId, enterpriseId: enterpriseId } })
-      .then(() => { return res.json({ success: true }) })
-      .catch((err) => { return res.json({ success: false, err }) })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
     }
   })
 })
-// 
+// 거부
 router.put('/enterprise/deny', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
@@ -413,8 +413,8 @@ router.put('/enterprise/deny', function (req, res) {
       var enterpriseId = req.body.enterpriseId
       var approval = 2
       Contract.update({ approval }, { where: { sellerId: decoded.sellerId, enterpriseId: enterpriseId } })
-      .then(() => { return res.json({ success: true }) })
-      .catch((err) => { return res.json({ success: false, err }) })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
     }
   })
 })
@@ -436,7 +436,7 @@ router.post('/checkid', checkId, function (req, res) {
   res.json({ success: true })
 })
 
-//캠페인 삭제
+// 캠페인 삭제
 router.delete('/campaign/:campaignId', function (req, res) {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
@@ -451,7 +451,7 @@ router.delete('/campaign/:campaignId', function (req, res) {
     }
   })
 })
-//캠페인 조회
+// 캠페인 조회
 router.get('/campaign', (req, res) => {
   var token = req.headers['x-access-token']
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {

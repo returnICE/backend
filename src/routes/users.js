@@ -4,8 +4,6 @@ var async = require('async')
 var crypto = require('crypto')
 var db = require('../models/index')
 var Customer = db.Customer
-var EatenLog = db.EatenLog
-var Menu = db.Menu
 var Member = db.Member
 var Enterprise = db.Enterprise
 var CampaignLog = db.CampaignLog
@@ -274,9 +272,12 @@ router.post('/enterprise', findEnterprise, (req, res) => {
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
     if (err) return res.json({ success: false, err })
     try {
-      var member = await Member.findOrCreate({ where: { customerId: decoded.customerId, enterpriseId: req.body.enterpriseId },defaults:{
-        ...req.body
-      } })
+      var member = await Member.findOrCreate({
+        where: { customerId: decoded.customerId, enterpriseId: req.body.enterpriseId },
+        defaults: {
+          ...req.body
+        }
+      })
       res.json({ success: true, member })
     } catch (err) {
       res.json({ success: false, err })
@@ -332,15 +333,14 @@ router.post('/campaign', (req, res) => {
 
 module.exports = router
 
-
- // 소비자 승인 로그 조회
- router.get('/accept', function (req, res) {
-   var token = req.headers['x-access-token']
-   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
-     if (err) return res.json({ success: false, err })
-     else {
-       var query = 'SELECT T1.eatenId, T1.eatenDate, T1.score, T1.enterpriseId, T2.menuName, T2.price FROM EatenLog T1 join Menu T2 WHERE T1.customerId = :customerId AND T1.menuId = T2.menuId;'
-       var values = { // query에서 :customerId -> decode.customerId로 변환
+// 소비자 승인 로그 조회
+router.get('/accept', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      var query = 'SELECT T1.eatenId, T1.eatenDate, T1.score, T1.enterpriseId, T2.menuName, T2.price FROM EatenLog T1 join Menu T2 WHERE T1.customerId = :customerId AND T1.menuId = T2.menuId;'
+      var values = { // query에서 :customerId -> decode.customerId로 변환
         customerId: decoded.customerId
       }
       db.sequelize.query(query, { replacements: values }).spread(function (results, data) { // results 뭐하는건지 모르겠음
@@ -349,7 +349,6 @@ module.exports = router
     }
   })
 })
-
 
 function checkUserRegValidation (req, res, next) { // 중복 확인
   var isValid = true

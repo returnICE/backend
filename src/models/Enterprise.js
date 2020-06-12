@@ -38,11 +38,11 @@ module.exports = function(sequelize, DataTypes) {
       unique: true
     },
     amountPerDay: {
-      type: DataTypes.STRING(64),
+      type: DataTypes.INTEGER(11),
       allowNull: true
     },
     amountPerMonth: {
-      type: DataTypes.STRING(64),
+      type: DataTypes.INTEGER(11),
       allowNull: true
     },
     lat: {
@@ -51,6 +51,10 @@ module.exports = function(sequelize, DataTypes) {
     },
     lon: {
       type: "DOUBLE",
+      allowNull: true
+    },
+    resetDate: {
+      type: DataTypes.DATEONLY,
       allowNull: true
     }
   }, {

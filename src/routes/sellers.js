@@ -16,6 +16,7 @@ var EatenLog = db.EatenLog
 var Customer = db.Customer
 var Campaign = db.Campaign
 var CampaignLog = db.CampaignLog
+var Contract = db.Contract
 
 var serviceAccount = require('../config/swcapston-firebase-adminsdk.json')
 firebase.initializeApp({
@@ -76,6 +77,7 @@ router.get('/enterprise', (req, res) => {
     await db.sequelize.query(query, { replacements: values }).spread(async function (results, subdata) {
       for (var s of subdata) {
         enterpriseData.push({
+          enterpriseId: s.enterpriseId,
           name: s.name,
           phone: s.phone,
           address: s.address,
@@ -388,7 +390,34 @@ router.put('/myinfo', function (req, res) {
     }
   })
 })
-
+// 승인
+router.put('/enterprise/accept', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      var enterpriseId = req.body.enterpriseId
+      var approval = 1
+      Contract.update({ approval }, { where: { sellerId: decoded.sellerId, enterpriseId: enterpriseId } })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
+    }
+  })
+})
+// 거부
+router.put('/enterprise/deny', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      var enterpriseId = req.body.enterpriseId
+      var approval = 2
+      Contract.update({ approval }, { where: { sellerId: decoded.sellerId, enterpriseId: enterpriseId } })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
+    }
+  })
+})
 // 음식점 정보 삭제
 router.delete('/myinfo', function (req, res) {
   var token = req.headers['x-access-token']
@@ -405,6 +434,46 @@ router.delete('/myinfo', function (req, res) {
 // 음식점 아이디 중복 확인
 router.post('/checkid', checkId, function (req, res) {
   res.json({ success: true })
+})
+
+// 캠페인 삭제
+router.delete('/campaign/:campaignId', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      await Campaign.destroy({ where: { sellerId: decoded.sellerId, campaignId: req.params.campaignId } })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
+      await CampaignLog.destroy({ where: { campaignId: req.params.campaignId } })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
+    }
+  })
+})
+// 캠페인 조회
+router.get('/campaign', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    var values = {
+      sellerId: decoded.sellerId
+    }
+    var campaignData = []
+    var query = 'SELECT campaignId, transmitDate, body, targetOp, title from Campaign where Campaign.sellerId = :sellerId;'
+    await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
+      for (var s of subdata) {
+        campaignData.push({
+          campaignId: s.campaignId,
+          transmitDate: s.transmitDate,
+          body: s.body,
+          targetOp: s.targetOp,
+          title: s.title
+        })
+      }
+    })
+    res.json({ success: true, data: campaignData })
+  })
 })
 
 router.post('/campaign', async (req, res) => {
@@ -444,7 +513,7 @@ router.post('/campaign', async (req, res) => {
       .then(() => {
         console.log('메세지 성공')
 
-        Campaign.create({ ...req.body, sellerId: 'dbr11' }).then((data) => {
+        Campaign.create({ ...req.body, sellerId: decoded.sellerId }).then((data) => {
           var camplog = cst.map((v) => {
             return { customerId: v, campaignId: data.campaignId }
           })

@@ -34,7 +34,9 @@ router.post('/login', async (req, res, next) => {
       .then((data) => {
         if (data && data.pw === crypto.createHash('sha512').update(req.body.pw + data.salt).digest('hex')) {
           var payload = {
-            enterpriseId: data.enterpriseId
+            enterpriseId: data.enterpriseId,
+            lat: data.lat,
+            lon: data.lon
           }
           var options = { expiresIn: 60 * 60 * 24 }
           jwt.sign(payload, process.env.JWT_KEY, options, function (err, token) {
@@ -42,11 +44,11 @@ router.post('/login', async (req, res, next) => {
             return res.send({ success: true, data: token })
           })
         } else {
-          res.json({ succes: false, err: '아이디와 패스워드를 확인해주세요' })
+          res.json({ success: false, err: '아이디와 패스워드를 확인해주세요' })
         }
       })
   } catch (err) {
-    res.json({ succes: false, err })
+    res.json({ success: false, err })
   }
 })
 
@@ -60,7 +62,7 @@ router.get('/myinfo', function (req, res) {
         data.pw = ''
         return res.json({ success: true, data })
       }).catch((err) => {
-        return res.json({ succes: false, err })
+        return res.json({ success: false, err })
       })
     }
   })
@@ -81,7 +83,7 @@ router.get('/member', function (req, res) {
       }).then((data) => {
         return res.json({ success: true, data })
       }).catch((err) => {
-        return res.json({ succes: false, err })
+        return res.json({ success: false, err })
       })
     }
   })
@@ -98,7 +100,7 @@ router.put('/member', function (req, res) {
       }).then(() => {
         return res.json({ success: true })
       }).catch((err) => {
-        return res.json({ succes: false, err })
+        return res.json({ success: false, err })
       })
     }
   })
@@ -115,7 +117,7 @@ router.delete('/member/:id', function (req, res) {
       }).then(() => {
         return res.json({ success: true })
       }).catch((err) => {
-        return res.json({ succes: false, err })
+        return res.json({ success: false, err })
       })
     }
   })
@@ -125,10 +127,28 @@ router.post('/contract', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
     if (err) return res.json({ success: false, err })
     try {
-      console.log(new Date(req.body.startDate))
-      var contract = await Contract.findOrCreate({ where: { enterpriseId: decoded.enterpriseId, sellerId: req.body.sellerId }, defaults: { ...req.body } })
-      return contract[1] ? res.json({ success: true, contract })
-        : res.json({ success: false, err: '중복계약' })
+      const now = new Date()
+      var newDate = new Date()
+      newDate.setMonth(now.getMonth() + 1)
+      console.log(now, newDate)
+      var contract = await Contract.findOrCreate({ where: { enterpriseId: decoded.enterpriseId, sellerId: req.body.sellerId }, defaults: { startDate: now, paymentDay: newDate, endDate: newDate } })
+      var result = await contract[0].update({ startDate: now, paymentDay: newDate, endDate: newDate })
+      return res.json({ success: true, data: result })
+    } catch (err) {
+      return res.json({ success: false, err })
+    }
+  })
+})
+
+// 계약 확인
+router.get('/contract/:sellerId', function (req, res) {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      var contract = await Contract.findOne({ where: { enterpriseId: decoded.enterpriseId, sellerId: req.params.sellerId } })
+      console.log(contract)
+      if (contract) { return res.json({ success: true, contract }) } else { return res.json({ success: true, contract: { approval: -1 } }) }
     } catch (err) {
       return res.json({ success: false, err })
     }
@@ -189,7 +209,7 @@ function checkId (req, res, next) {
     where: { enterpriseId: req.body.enterpriseId }
   }).then((data) => {
     if (data) {
-      res.json({ succes: false, err: '아이디가 존재합니다' })
+      res.json({ success: false, err: '아이디가 존재합니다' })
     } else {
       next()
     }

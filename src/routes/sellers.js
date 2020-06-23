@@ -94,9 +94,9 @@ router.get('/enterprise', (req, res) => {
           for (var a of subdata) {
             var currentDate = new Date()
             var date = new Date(a.eatenDate)
-            if((currentDate.getFullYear() === date.getFullYear() && currentDate.getMonth()-1 === date.getMonth()) ||
-              (currentDate.getFullYear() - 1 === date.getFullYear && date.getMonth === 11)){
-              enterpriseData[enterpriseData.length-1].amountMonth += a.price
+            if ((currentDate.getFullYear() === date.getFullYear() && currentDate.getMonth() - 1 === date.getMonth()) ||
+              (currentDate.getFullYear() - 1 === date.getFullYear && date.getMonth === 11)) {
+              enterpriseData[enterpriseData.length - 1].amountMonth += a.price
             }
           }
         })
@@ -293,7 +293,7 @@ router.get('/enterprise/log', (req, res) => {
         }
       })
       res.json({ success: true, result })
-    } catch(err) {
+    } catch (err) {
       res.json({ success: false, err })
     }
   })
@@ -540,7 +540,6 @@ router.post('/campaign', async (req, res) => {
     firebase.messaging().sendMulticast(fcmMessage)
       .then(() => {
         console.log('메세지 성공')
-        
         Campaign.create({ ...req.body, sellerId: decoded.sellerId }).then((data) => {
           var camplog = cst.map((v) => {
             return { customerId: v, campaignId: data.campaignId }

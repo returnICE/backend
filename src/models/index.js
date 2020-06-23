@@ -32,6 +32,7 @@ db.Member.belongsTo(db.Enterprise, {foreignKey: 'enterpriseId'});
 db.SubItem.belongsTo(db.Seller, { foreignKey: 'sellerId' });
 db.SubedItem.belongsTo(db.SubItem, { foreignKey: 'subId' });
 db.Menu.belongsToMany(db.SubItem, { through: 'SubMenu',foreignKey:'menuId' });
+db.Menu.belongsTo(db.Seller, { foreignKey:'sellerId' });
 db.SubItem.belongsToMany(db.Menu, { through: 'SubMenu',foreignKey:'subId' });
 db.Customer.belongsToMany(db.SubItem, { through: 'SubedItem',foreignKey:'customerId' });
 db.SubItem.belongsToMany(db.Customer, { through: 'SubedItem',foreignKey:'subId' });

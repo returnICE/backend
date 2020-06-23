@@ -8,6 +8,9 @@ var Enterprise = db.Enterprise
 var Contract = db.Contract
 var Customer = db.Customer
 var Member = db.Member
+var Menu = db.Menu
+var EatenLog = db.EatenLog
+var Seller = db.Seller
 
 router.get('/', async (req, res, next) => {
   try {
@@ -151,6 +154,33 @@ router.get('/contract/:sellerId', function (req, res) {
       if (contract) { return res.json({ success: true, contract }) } else { return res.json({ success: true, contract: { approval: -1 } }) }
     } catch (err) {
       return res.json({ success: false, err })
+    }
+  })
+})
+
+// 회사원 eatenlog
+router.get('/accept', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      const data = await EatenLog.findAll({
+        include: [{
+          model: Menu,
+          attributes: ['menuName', 'price', 'sellerId'],
+          include: [{
+            model: Seller,
+            attributes: ['name']
+          }]
+        }, {
+          model: Customer,
+          attributes: ['name']
+        }],
+        attributes: ['eatenDate', 'eatenId']
+      })
+      res.json({ success: true, data })
+    } catch (err) {
+      res.json({ success: false, err })
     }
   })
 })

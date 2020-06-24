@@ -426,7 +426,8 @@ router.put('/enterprise/accept', function (req, res) {
     else {
       var enterpriseId = req.body.enterpriseId
       var approval = 1
-      Contract.update({ approval }, { where: { sellerId: decoded.sellerId, enterpriseId: enterpriseId } })
+      const startDate = new Date()
+      Contract.update({ approval, startDate }, { where: { sellerId: decoded.sellerId, enterpriseId: enterpriseId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }

@@ -68,31 +68,25 @@
             console.log(rsp);
             if (rsp.success) {
               $.ajax({
-                url: "/pay/billings/", // 서비스 웹서버
+                url: "/pay/billingsC/", // 서비스 웹서버
                 method: "POST",
                 //headers: { "Content-Type": "application/json" },
                 dataType:"json",
                 data: {
                   customer_uid: "<%= customerid %>", // 카드(빌링키)와 1:1로 대응하는 값
                   price: "<%= price %>",
-                  name: "<%= subname %>",
+                  subname: "<%= subname %>",
                   subId: "<%= subid %>",
+                  merchant_uid: "<%= merchant_uid %>",
+                  customername: "<%= customername %>",
+                  customerphone: "<%= customerphone %>",
                   paymentResult: rsp
                 }
               });
-                var msg = '결제가 완료되었습니다.';
-                msg += '고유ID : ' + rsp.imp_uid;
-                msg += '상점 거래ID : ' + rsp.merchant_uid;
-                msg += '결제 금액 : ' + rsp.paid_amount;
-                msg += '카드 승인번호 : ' + rsp.apply_num;
-                
                 window.AndroidBridge.resultPay('success');
             } else {
-                var msg = '결제에 실패하였습니다.';
-                msg += '에러내용 : ' + rsp.error_msg;
                 window.AndroidBridge.resultPay('fail');
             }
-            alert(msg);
         });
 </script>
     </body>

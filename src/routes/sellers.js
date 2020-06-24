@@ -7,6 +7,7 @@ var db = require('../models/index')
 var firebase = require('firebase-admin')
 
 var sequelize = require('sequelize')
+var schedule = require('node-schedule')
 
 var Seller = db.Seller
 var SubItem = db.SubItem
@@ -22,6 +23,7 @@ var serviceAccount = require('../config/swcapston-firebase-adminsdk.json')
 firebase.initializeApp({
   credential: firebase.credential.cert(serviceAccount)
 })
+var campaignList = {}
 
 router.get('/', async (req, res, next) => {
   try {
@@ -471,6 +473,10 @@ router.delete('/campaign/:campaignId', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
+      if (campaignList[req.params.campaignId.toString()] !== undefined) {
+        campaignList[req.params.campaignId.toString()].cancel()
+        delete campaignList[req.params.campaignId.toString()]
+      }
       await Campaign.destroy({ where: { sellerId: decoded.sellerId, campaignId: req.params.campaignId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
@@ -513,6 +519,7 @@ router.post('/campaign', async (req, res) => {
     var title = req.body.title
     var body = req.body.body
     var sellername = req.body.sellername
+    console.log(req.body)
 
     var cst = req.body.target
     try {
@@ -526,6 +533,7 @@ router.post('/campaign', async (req, res) => {
       return
     }
     var fcmTargetTokenList = customer.map((v) => { return v.fcmtoken })
+    var date = new Date(req.body.transmitDate)
     var fcmMessage = {
       notification: {
         title: title,
@@ -537,26 +545,28 @@ router.post('/campaign', async (req, res) => {
       },
       tokens: fcmTargetTokenList
     }
-
-    firebase.messaging().sendMulticast(fcmMessage)
-      .then(() => {
-        console.log('메세지 성공')
-        Campaign.create({ ...req.body, sellerId: decoded.sellerId }).then((data) => {
-          var camplog = cst.map((v) => {
-            return { customerId: v, campaignId: data.campaignId }
-          })
-          console.log(camplog)
-          CampaignLog.bulkCreate(camplog).then((data) => {
-            console.log('캠페인 로그 생성')
-          })
+    var j = schedule.scheduleJob(date, function () {
+      firebase.messaging().sendMulticast(fcmMessage)
+        .then(() => {
+          console.log('메세지 성공')
         }).catch((err) => {
-          res.json({ success: false, err })
+          console.log(err)
         })
-        res.json({ success: true })
+    })
+    Campaign.create({ ...req.body, sellerId: decoded.sellerId }).then((data) => {
+      var camplog = cst.map((v) => {
+        return { customerId: v, campaignId: data.campaignId }
       })
-      .catch((err) => {
-        console.log(err)
+      console.log(camplog)
+      CampaignLog.bulkCreate(camplog).then((data) => {
+        console.log('캠페인 로그 생성')
       })
+      campaignList[data.campaignId.toString()] = j
+      console.log(data.campaignId.toString() + ' ' + campaignList[data.campaignId.toString()])
+    }).catch((err) => {
+      res.json({ success: false, err })
+    })
+    res.json({ success: true })
   })
 })
 

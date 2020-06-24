@@ -541,10 +541,6 @@ router.post('/campaign', async (req, res) => {
     firebase.messaging().sendMulticast(fcmMessage)
       .then(() => {
         console.log('메세지 성공')
-<<<<<<< Updated upstream
-=======
-        console.log(req.body)
->>>>>>> Stashed changes
         Campaign.create({ ...req.body, sellerId: decoded.sellerId }).then((data) => {
           var camplog = cst.map((v) => {
             return { customerId: v, campaignId: data.campaignId }

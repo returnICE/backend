@@ -47,6 +47,7 @@ db.CampaignLog.belongsTo(db.Customer,{foreignKey:'customerId'});
 db.CampaignLog.belongsTo(db.Campaign,{foreignKey:'campaignId'});
 db.Campaign.belongsTo(db.Seller,{foreignKey:'sellerId'});
 db.Contract.belongsTo(db.Seller,{foreignKey:'sellerId'});
+db.Contract.belongsTo(db.Enterprise,{foreignKey:'enterpriseId'});
 
 const { Op } = require('sequelize')
 async function resetDate(){

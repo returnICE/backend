@@ -183,6 +183,10 @@ router.get('/accept', (req, res) => {
         include: [{
           model: Seller,
           attributes: ['name', 'imgURL']
+        },
+        {
+          model: Enterprise,
+          attributes:['name','phone']
         }]
       })
       res.json({ success: true, data, contract })

@@ -130,7 +130,7 @@ router.post('/contract', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
     if (err) return res.json({ success: false, err })
     try {
-      var {resetDate} = await Enterprise.findByPk(decoded.enterpriseId,{
+      var { resetDate } = await Enterprise.findByPk(decoded.enterpriseId, {
         attributes: ['resetDate']
       })
       const now = new Date()
@@ -150,8 +150,7 @@ router.get('/contract/:sellerId', function (req, res) {
     if (err) return res.json({ success: false, err })
     try {
       var contract = await Contract.findOne({ where: { enterpriseId: decoded.enterpriseId, sellerId: req.params.sellerId } })
-      if (contract) { return res.json({ success: true, contract }) } 
-      else { return res.json({ success: true, contract: { approval: -1 } }) }
+      if (contract) { return res.json({ success: true, contract }) } else { return res.json({ success: true, contract: { approval: -1 } }) }
     } catch (err) {
       return res.json({ success: false, err })
     }
@@ -170,20 +169,20 @@ router.get('/accept', (req, res) => {
           attributes: ['menuName', 'price', 'sellerId'],
           include: [{
             model: Seller,
-            attributes: ['name','sellerId']
+            attributes: ['name', 'sellerId']
           }]
         }, {
           model: Customer,
           attributes: ['name']
         }],
-        where:{enterpriseId:decoded.enterpriseId},
+        where: { enterpriseId: decoded.enterpriseId },
         attributes: ['eatenDate', 'eatenId']
       })
       const contract = await Contract.findAll({
-        where:{enterpriseId:decoded.enterpriseId, approval:1},
-        include:[{
-          model:Seller,
-          attributes:['name','imgURL']
+        where: { enterpriseId: decoded.enterpriseId, approval: 1 },
+        include: [{
+          model: Seller,
+          attributes: ['name', 'imgURL']
         }]
       })
       res.json({ success: true, data, contract })

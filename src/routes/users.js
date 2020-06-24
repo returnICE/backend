@@ -32,6 +32,7 @@ router.post('/login', async (req, res, next) => {
           }
           var options = { expiresIn: 60 * 60 * 24 }
           jwt.sign(payload, process.env.JWT_KEY, options, function (err, token) {
+            console.log(err)
             if (err) return res.json({ success: false, err: err })
             return res.send({ success: true, data: token, name: data.name })
           })
@@ -40,6 +41,7 @@ router.post('/login', async (req, res, next) => {
         }
       })
   } catch (err) {
+    console.log(err)
     res.json({ succes: false, err })
   }
 })

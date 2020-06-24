@@ -41,7 +41,7 @@ router.post('/enterprise', function (req, res) {
     })
       .then((data) => {
         if (data.amountPerday + price > data.Enterprise.amountPerday || data.amountPerMonth + price > data.Enterprise.amountPerMonth) {
-          return res.json({ success: false, err: '한도초과' ,data, price})
+          return res.json({ success: false, err: '한도초과', data, price })
         } else {
           data.increment({ amountPerday: price })
           data.increment({ amountPerMonth: price })

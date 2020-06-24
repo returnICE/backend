@@ -130,12 +130,12 @@ router.post('/contract', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, async function (err, decoded) {
     if (err) return res.json({ success: false, err })
     try {
+      var {resetDate} = await Enterprise.findByPk(decoded.enterpriseId,{
+        attributes: ['resetDate']
+      })
       const now = new Date()
-      var newDate = new Date()
-      newDate.setMonth(now.getMonth() + 1)
-      console.log(now, newDate)
-      var contract = await Contract.findOrCreate({ where: { enterpriseId: decoded.enterpriseId, sellerId: req.body.sellerId }, defaults: { startDate: now, paymentDay: newDate, endDate: newDate } })
-      var result = await contract[0].update({ startDate: now, paymentDay: newDate, endDate: newDate })
+      var contract = await Contract.findOrCreate({ where: { enterpriseId: decoded.enterpriseId, sellerId: req.body.sellerId }, defaults: { startDate: now, paymentDay: resetDate, endDate: resetDate } })
+      var result = await contract[0].update({ startDate: now, paymentDay: resetDate, endDate: resetDate })
       return res.json({ success: true, data: result })
     } catch (err) {
       return res.json({ success: false, err })
@@ -150,8 +150,8 @@ router.get('/contract/:sellerId', function (req, res) {
     if (err) return res.json({ success: false, err })
     try {
       var contract = await Contract.findOne({ where: { enterpriseId: decoded.enterpriseId, sellerId: req.params.sellerId } })
-      console.log(contract)
-      if (contract) { return res.json({ success: true, contract }) } else { return res.json({ success: true, contract: { approval: -1 } }) }
+      if (contract) { return res.json({ success: true, contract }) } 
+      else { return res.json({ success: true, contract: { approval: -1 } }) }
     } catch (err) {
       return res.json({ success: false, err })
     }
@@ -170,15 +170,23 @@ router.get('/accept', (req, res) => {
           attributes: ['menuName', 'price', 'sellerId'],
           include: [{
             model: Seller,
-            attributes: ['name']
+            attributes: ['name','sellerId']
           }]
         }, {
           model: Customer,
           attributes: ['name']
         }],
+        where:{enterpriseId:decoded.enterpriseId},
         attributes: ['eatenDate', 'eatenId']
       })
-      res.json({ success: true, data })
+      const contract = await Contract.findAll({
+        where:{enterpriseId:decoded.enterpriseId, approval:1},
+        include:[{
+          model:Seller,
+          attributes:['name','imgURL']
+        }]
+      })
+      res.json({ success: true, data, contract })
     } catch (err) {
       res.json({ success: false, err })
     }

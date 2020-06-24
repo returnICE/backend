@@ -83,8 +83,11 @@ router.get('/member', function (req, res) {
           model: Customer,
           attributes: ['customerId', 'name', 'phone', 'birth']
         }]
-      }).then((data) => {
-        return res.json({ success: true, data })
+      }).then(async (data) => {
+        var { enterpriseCode } = await Enterprise.findByPk(decoded.enterpriseId, {
+          attributes: ['enterpriseCode']
+        })
+        return res.json({ success: true, data, enterpriseCode })
       }).catch((err) => {
         return res.json({ success: false, err })
       })

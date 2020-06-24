@@ -185,26 +185,30 @@ router.get('/enterprise/:enterpriseId', async (req, res, next) => {
 })
 
 // B2B 식당 조회
-router.get('/enterprise/seller/:enterpriseId', async (req, res, next) => {
-  const enterpriseId = req.params.enterpriseId
+router.post('/enterprise/seller/', async (req, res, next) => {
   var b2bdata = []
-
-  var query = 'SELECT T2.sellerId, T2.name, T2.minPrice, T2.imgURL FROM (SELECT sellerID FROM Contract WHERE enterpriseId = :enterpriseId AND approval = 1) T1 JOIN Seller T2 WHERE T1.sellerId = T2.sellerId'
-  var values = {
-    enterpriseId: enterpriseId
-  }
-  await db.sequelize.query(query, { replacements: values }).spread(function (results, dinnerdata) { // results 뭐하는건지 모르겠음
-    for (var s of dinnerdata) {
-      b2bdata.push({
-        sellerId: s.sellerId,
-        name: s.name,
-        minPrice: s.minPrice,
-        imgURL: s.imgURL
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    else {
+      var query = 'Select Member.enterpriseId, Seller.sellerId, Seller.name, Seller.minPrice, Seller.imgURL from Member join Contract on Contract.enterpriseId = Member.enterpriseId join Seller on Contract.sellerId = Seller.sellerId where customerId = :customerId;'
+      var values = { // query에서 :customerId -> decode.customerId로 변환
+        customerId: decoded.customerId
+      }
+      db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) { // results 뭐하는건지 모르겠음
+        for (var s of subdata) {
+          b2bdata.push({
+            sellerId: s.sellerId,
+            name: s.name,
+            minPrice: s.minPrice,
+            imgURL: s.imgURL
+          })
+        }
+        console.log(b2bdata)
+        return res.json({ success: true, b2bdata: b2bdata })
       })
     }
   })
-
-  res.json({ success: true, b2bdata: b2bdata })
 })
 // 메뉴 조회
 router.get('/menu/:sellerId', async (req, res, next) => {

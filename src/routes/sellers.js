@@ -92,7 +92,12 @@ router.get('/enterprise', (req, res) => {
         var query2 = 'select Menu.price, t.enterpriseId, t.eatenDate from Menu, (select EatenLog.enterpriseId, EatenLog.menuId, EatenLog.eatenDate from EatenLog) as t where Menu.sellerId = :sellerId and t.enterpriseId = :enterpriseId and Menu.menuId = t.menuId;'
         await db.sequelize.query(query2, { replacements: value2 }).spread(function (results, subdata) {
           for (var a of subdata) {
-            enterpriseData.amountMonth += a.price
+            var currentDate = new Date()
+            var date = new Date(a.eatenDate)
+            if ((currentDate.getFullYear() === date.getFullYear() && currentDate.getMonth() - 1 === date.getMonth()) ||
+              (currentDate.getFullYear() - 1 === date.getFullYear && date.getMonth === 11)) {
+              enterpriseData[enterpriseData.length - 1].amountMonth += a.price
+            }
           }
         })
       }
@@ -265,6 +270,29 @@ router.get('/accept', (req, res) => {
         attributes: ['eatenDate', 'eatenId']
       })
       res.json({ success: true, customer })
+    } catch (err) {
+      res.json({ success: false, err })
+    }
+  })
+})
+
+// 기업 승인 로그
+router.get('/enterprise/log', (req, res) => {
+  var token = req.headers['x-access-token']
+  jwt.verify(token, process.env.JWT_Key, async function (err, decoded) {
+    if (err) return res.json({ success: false, err })
+    try {
+      var values = {
+        sellerId: decoded.sellerId
+      }
+      var result = []
+      var query = 'SELECT EatenLog.eatenDate, EatenLog.customerId, Menu.menuName, Menu.price, Enterprise.name FROM EatenLog join Menu on EatenLog.menuId = Menu.menuId and Menu.sellerId = :sellerId join Enterprise on EatenLog.enterpriseId = Enterprise.enterpriseId;'
+      await db.sequelize.query(query, { replacements: values }).spread(function (results, subdata) {
+        for (var s of subdata) {
+          result.push(s)
+        }
+      })
+      res.json({ success: true, result })
     } catch (err) {
       res.json({ success: false, err })
     }
@@ -513,7 +541,10 @@ router.post('/campaign', async (req, res) => {
     firebase.messaging().sendMulticast(fcmMessage)
       .then(() => {
         console.log('메세지 성공')
-
+<<<<<<< Updated upstream
+=======
+        console.log(req.body)
+>>>>>>> Stashed changes
         Campaign.create({ ...req.body, sellerId: decoded.sellerId }).then((data) => {
           var camplog = cst.map((v) => {
             return { customerId: v, campaignId: data.campaignId }

@@ -411,8 +411,6 @@ function findEnterprise (req, res, next) {
     if (data) {
       req.body.enterpriseId = data.enterpriseId
       req.body.resetDate = data.resetDate
-      req.body.amountPerMonth = data.amountPerMonth
-      req.body.amountPerDay = data.amountPerDay
       next()
     } else {
       return res.json({ success: false, err: '회사를 찾을수없습니다' })

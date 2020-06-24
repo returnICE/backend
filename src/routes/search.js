@@ -66,7 +66,7 @@ router.post('/ent', async (req, res, next) => {
       var lon = decoded.lon
       var page = 0
       var x = '-1.0'
-      var listcount = 20000
+      var listcount = 20
       if (x === '-1.0') {
         const sellers = await Seller.findAll({
           raw: true

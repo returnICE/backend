@@ -186,7 +186,7 @@ router.get('/accept', (req, res) => {
         },
         {
           model: Enterprise,
-          attributes:['name','phone']
+          attributes: ['name', 'phone']
         }]
       })
       res.json({ success: true, data, contract })

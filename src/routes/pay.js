@@ -221,14 +221,11 @@ router.post('/enterprisecheck', async function (req, res, next) { // 결제창 �
     if (status === 'paid') {
       var date = new Date()
       date.setMonth(date.getMonth() + 1)
-      Contract.update({ paymentDay: date }, { where: { contractId: contractId } })
-        .then(() => { return res.json({ success: true }) })
-        .catch((err) => { return res.json({ success: false, err }) })
-      res.send({ status: 'success', message: '일반 결제 성공' })
-      return
+      Contract.update({ paymentDay: date, endDate: date }, { where: { contractId: contractId } })
+        .then(() => { return res.send({ status: 'success', message: '일반 결제 성공' }) })
+        .catch((err) => { return res.json({ status: 'forgery', message: err }) })
     } else {
-      res.send({ status: 'forgery', message: '결제 거부' })
-      return
+      return res.send({ status: 'forgery', message: '결제 거부' })
     }
   } catch (e) {
     console.log(e)

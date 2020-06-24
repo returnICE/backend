@@ -27,7 +27,8 @@ router.post('/customer', function (req, res) {
 
 router.post('/enterprise', function (req, res) {
   var token = req.headers['x-access-token']
-  const price = req.body.price
+  const priceInt = req.body.price
+  const price = parseInt(priceInt)
   const menuId = req.body.menuId
   jwt.verify(token, process.env.JWT_KEY, async (err, decoded) => {
     if (err) res.json({ success: false, err })
@@ -40,7 +41,7 @@ router.post('/enterprise', function (req, res) {
     })
       .then((data) => {
         if (data.amountPerday + price > data.Enterprise.amountPerday || data.amountPerMonth + price > data.Enterprise.amountPerMonth) {
-          return res.json({ success: false, err: '한도초과' })
+          return res.json({ success: false, err: '한도초과' ,data, price})
         } else {
           data.increment({ amountPerday: price })
           data.increment({ amountPerMonth: price })

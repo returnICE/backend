@@ -88,38 +88,37 @@ router.post('/billingsC', async (req, res) => { // 결제
       })
 
       const getToken = await axios({
-        url: "https://api.iamport.kr/users/getToken",
-        method: "post", // POST method
-        headers: { "Content-Type": "application/json" }, // "Content-Type": "application/json"
+        url: 'https://api.iamport.kr/users/getToken',
+        method: 'post', // POST method
+        headers: { 'Content-Type': 'application/json' }, // "Content-Type": "application/json"
         data: {
-          imp_key: "1640642301009444", // REST API키
-          imp_secret: "0QL5gQKrscs6CHpFQsILUbcfd6uoKd5K3QQkHALaNegqWF5N8Ny2ZKidRNBB0Gl4xcoeMaoAoE0lk58t" // REST API Secret
+          imp_key: '1640642301009444', // REST API키
+          imp_secret: '0QL5gQKrscs6CHpFQsILUbcfd6uoKd5K3QQkHALaNegqWF5N8Ny2ZKidRNBB0Gl4xcoeMaoAoE0lk58t' // REST API Secret
         }
-      });
-      const { access_token } = getToken.data.response; // 인증 토큰
+      })
+      const { access_token: accessToken } = getToken.data.response // 인증 토큰
       var date = new Date()
-      date.setMonth(date.getMonth()+1)
+      date.setMonth(date.getMonth() + 1)
       var unixtimestamp = Math.floor(date.getTime() / 1000)
       axios({
-        url: `https://api.iamport.kr/subscribe/payments/schedule`,
-        method: "post",
-        headers: { "Authorization": access_token }, // 인증 토큰 Authorization header에 추가
+        url: 'https://api.iamport.kr/subscribe/payments/schedule',
+        method: 'post',
+        headers: { Authorization: accessToken }, // 인증 토큰 Authorization header에 추가
         data: {
           customer_uid: customerUid, // 카드(빌링키)와 1:1로 대응하는 값
           schedules: [
             {
-              merchant_uid: customerId + subId + 'merchant_' + date, // 주문 번호
+              merchant_uid: customerUid + subId + 'merchant_' + date, // 주문 번호
               schedule_at: unixtimestamp, // 결제 시도 시각 in Unix Time Stamp. ex. 다음 달 1일
               amount: price,
               name: subname,
               buyer_name: customername,
               buyer_tel: customerphone,
-              buyer_email: ""
+              buyer_email: ''
             }
           ]
         }
       })
-
     } else { // 카드 승인 실패 (ex. 고객 카드 한도초과, 거래정지카드, 잔액부족 등)
       // paymentResult.status : failed 로 수신됩니다.
       res.send({ success: false, message: '승인실패' })
@@ -129,75 +128,111 @@ router.post('/billingsC', async (req, res) => { // 결제
     res.status(400).send(e)
   }
 })
-router.post('/schedule',async function(req,res){
+router.post('/schedule', async function (req, res) {
   try {
-    const { imp_uid, merchant_uid } = req.body;
+    const { imp_uid: impUid, merchant_uid: merchantUid } = req.body
     // 액세스 토큰(access token) 발급 받기
     const getToken = await axios({
-      url: "https://api.iamport.kr/users/getToken",
-      method: "post", // POST method
-      headers: { "Content-Type": "application/json" }, // "Content-Type": "application/json"
+      url: 'https://api.iamport.kr/users/getToken',
+      method: 'post', // POST method
+      headers: { 'Content-Type': 'application/json' }, // "Content-Type": "application/json"
       data: {
-        imp_key: "1640642301009444", // REST API키
-        imp_secret: "0QL5gQKrscs6CHpFQsILUbcfd6uoKd5K3QQkHALaNegqWF5N8Ny2ZKidRNBB0Gl4xcoeMaoAoE0lk58t" // REST API Secret
+        imp_key: '1640642301009444', // REST API키
+        imp_secret: '0QL5gQKrscs6CHpFQsILUbcfd6uoKd5K3QQkHALaNegqWF5N8Ny2ZKidRNBB0Gl4xcoeMaoAoE0lk58t' // REST API Secret
       }
-    });
-    const { access_token } = getToken.data.response; // 인증 토큰
+    })
+    const { access_token: accessToken } = getToken.data.response // 인증 토큰
     // imp_uid로 아임포트 서버에서 결제 정보 조회
     const getPaymentData = await axios({
-      url: `https://api.iamport.kr/payments/\${imp_uid}`, // imp_uid 전달
-      method: "get", // GET method
-      headers: { "Authorization": access_token } // 인증 토큰 Authorization header에 추가
-    });
-    const paymentData = getPaymentData.data.response; // 조회한 결제 정보
-    const { status } = paymentData;
-    console.log(paymentData)
+      url: `https://api.iamport.kr/payments/${impUid}`, // imp_uid 전달
+      method: 'get', // GET method
+      headers: { Authorization: accessToken } // 인증 토큰 Authorization header에 추가
+    })
+    const paymentData = getPaymentData.data.response // 조회한 결제 정보
+    const { status } = paymentData
     if (status === 'paid') { // 결제 완료
-      
+      const price = paymentData.paid_amount
+      const subname = paymentData.name
+      const customername = paymentData.buyer_name
+      const customerphone = paymentData.buyer_tel
+      const customerUid = paymentData.customer_uid
+      const subId = parseInt(merchantUid.substring(customerUid.length))
+
+      PayLog.create({
+        customerId: customerUid,
+        payDate: new Date().getTime(),
+        subId: subId,
+        merchant_uid: merchantUid
+      })
+
+      var date = new Date()
+      date.setMonth(date.getMonth() + 1)
+      var unixtimestamp = Math.floor(date.getTime() / 1000)
+      axios({
+        url: 'https://api.iamport.kr/subscribe/payments/schedule',
+        method: 'post',
+        headers: { Authorization: accessToken }, // 인증 토큰 Authorization header에 추가
+        data: {
+          customer_uid: customerUid, // 카드(빌링키)와 1:1로 대응하는 값
+          schedules: [
+            {
+              merchant_uid: customerUid + subId + 'merchant_' + date, // 주문 번호
+              schedule_at: unixtimestamp, // 결제 시도 시각 in Unix Time Stamp. ex. 다음 달 1일
+              amount: price,
+              name: subname,
+              buyer_name: customername,
+              buyer_tel: customerphone,
+              buyer_email: ''
+            }
+          ]
+        }
+      })
     } else {
       // 재결제 시도
     }
   } catch (e) {
-    res.status(400).send(e);
+    res.status(400).send(e)
   }
 })
 
 router.post('/enterprisecheck', async function (req, res, next) { // 결제창 생성
   try {
-  const { imp_uid, merchant_uid } = req.body;
-  //const contractId = req.body.contractId;
-  const getToken = await axios({
-    url: "https://api.iamport.kr/users/getToken",
-    method: "post", // POST method
-    headers: { "Content-Type": "application/json" }, // "Content-Type": "application/json"
-    data: {
-      imp_key: "1640642301009444", // REST API키
-      imp_secret: "0QL5gQKrscs6CHpFQsILUbcfd6uoKd5K3QQkHALaNegqWF5N8Ny2ZKidRNBB0Gl4xcoeMaoAoE0lk58t" // REST API Secret
-    }
-  });
-  const { access_token } = getToken.data.response; // 인증 토큰
-  const getPaymentData = await axios({
-    url: `https://api.iamport.kr/payments/${imp_uid}`, // imp_uid 전달
-    method: "get", // GET method
-    headers: { "Authorization": access_token } // 인증 토큰 Authorization header에 추가
-  });
-  const paymentData = getPaymentData.data.response; // 조회한 결제 정보
+    const { imp_uid: impUid } = req.body
+    const contractId = req.body.contractId
+    // const contractId = req.body.contractId;
+    const getToken = await axios({
+      url: 'https://api.iamport.kr/users/getToken',
+      method: 'post', // POST method
+      headers: { 'Content-Type': 'application/json' }, // "Content-Type": "application/json"
+      data: {
+        imp_key: '1640642301009444', // REST API키
+        imp_secret: '0QL5gQKrscs6CHpFQsILUbcfd6uoKd5K3QQkHALaNegqWF5N8Ny2ZKidRNBB0Gl4xcoeMaoAoE0lk58t' // REST API Secret
+      }
+    })
+    const { access_token: accessToken } = getToken.data.response // 인증 토큰
+    const getPaymentData = await axios({
+      url: `https://api.iamport.kr/payments/${impUid}`, // imp_uid 전달
+      method: 'get', // GET method
+      headers: { Authorization: accessToken } // 인증 토큰 Authorization header에 추가
+    })
+    const paymentData = getPaymentData.data.response // 조회한 결제 정보
 
-  const { status } = paymentData;
-  if(status == "paid"){
-    var date = new Date()
-    date.setMonth(date.getMonth()+1)
-    Contract.update({ paymentDay: date }, { where: { sellerId: decoded.sellerId } })
-    .then(() => { return res.json({ success: true }) })
-    .catch((err) => { return res.json({ success: false, err }) })
-    res.send({ status: "success", message: "일반 결제 성공" });
-    return;
-  } else { 
-    throw { status: "forgery", message: "결제 거부" };
-  }
+    const { status } = paymentData
+    if (status === 'paid') {
+      var date = new Date()
+      date.setMonth(date.getMonth() + 1)
+      Contract.update({ paymentDay: date }, { where: { contractId: contractId } })
+        .then(() => { return res.json({ success: true }) })
+        .catch((err) => { return res.json({ success: false, err }) })
+      res.send({ status: 'success', message: '일반 결제 성공' })
+      return
+    } else {
+      res.send({ status: 'forgery', message: '결제 거부' })
+      return
+    }
   } catch (e) {
     console.log(e)
-    res.status(400).send(e);
+    res.status(400).send(e)
   }
 })
 

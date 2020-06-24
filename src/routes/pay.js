@@ -68,6 +68,7 @@ router.post('/billingsC', async (req, res) => { // 결제
       term = results[0].term
     })
 
+    console.log(paymentResult)
     const status = paymentResult.status
     if (status === 'paid') { // 카드 정상 승인
       SubedItem.create({
@@ -145,7 +146,7 @@ router.post('/schedule',async function(req,res){
     const { access_token } = getToken.data.response; // 인증 토큰
     // imp_uid로 아임포트 서버에서 결제 정보 조회
     const getPaymentData = await axios({
-      url: `https://api.iamport.kr/payments/\${imp_uid}`, // imp_uid 전달
+      url: `https://api.iamport.kr/payments/${imp_uid}`, // imp_uid 전달
       method: "get", // GET method
       headers: { "Authorization": access_token } // 인증 토큰 Authorization header에 추가
     });

@@ -247,7 +247,7 @@ router.delete('/product/menu/:menuId', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: req.params.menuId } })
+      Menu.destroy({ where: { sellerId: decoded.sellerId, menuId: parseInt(req.params.menuId) } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }

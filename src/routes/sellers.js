@@ -234,7 +234,7 @@ router.delete('/product/sub/:subId', function (req, res) {
     else {
       var subId = req.params.subId
       var autoPay = 0
-      SubedItem.update({ autoPay }, { where: {subId: subId}})
+      SubedItem.update({ autoPay }, { where: { subId: subId } })
         .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }

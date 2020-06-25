@@ -69,9 +69,9 @@ router.post('/ent', async (req, res, next) => {
       var listcount = 100
       if (x === '-1.0') {
         const sellers = await Seller.findAll({
-          raw: true
-        }, { where: { contractable: 1 } })
-
+          raw: true,
+          where: { contractable: 1 }
+        })
         sellers.sort((a, b) => {
           var ax = (lat - a.lat)
           var ay = (lon - a.lon) * Math.cos(a.lat * Math.PI / 180)
@@ -83,13 +83,14 @@ router.post('/ent', async (req, res, next) => {
           return A < B ? -1 : 1
         })
 
-        res.json({ success: true, sellerdata: sellers.slice(listcount * page, listcount * page + listcount) })
+        res.json({ success: true, sellerdata: sellers.slice(listcount * page, listcount * page + listcount), length: sellers.length })
       } else {
         var range = 293.59 * Math.exp(-0.703 * x)
 
         const sellers = await Seller.findAll({
           raw: true,
           where: {
+            contractable:1,
             lat: {
               [Op.gte]: lat - range,
               [Op.lte]: parseFloat(lat) + range

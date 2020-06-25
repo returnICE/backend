@@ -191,7 +191,7 @@ router.post('/enterprise/seller/', async (req, res, next) => {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      var query = 'Select Member.enterpriseId, Seller.sellerId, Seller.name, Seller.minPrice, Seller.imgURL from Member join Contract on Contract.enterpriseId = Member.enterpriseId join Seller on Contract.sellerId = Seller.sellerId where customerId = :customerId;'
+      var query = 'SELECT T2.sellerId, T2.name, T2.minPrice, T2.imgURL FROM (SELECT sellerID FROM Contract WHERE enterpriseId = :enterpriseId AND approval = 1) T1 JOIN Seller T2 WHERE T1.sellerId = T2.sellerId'
       var values = { // query에서 :customerId -> decode.customerId로 변환
         customerId: decoded.customerId
       }

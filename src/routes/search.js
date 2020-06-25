@@ -90,7 +90,7 @@ router.post('/ent', async (req, res, next) => {
         const sellers = await Seller.findAll({
           raw: true,
           where: {
-            contractable:1,
+            contractable: 1,
             lat: {
               [Op.gte]: lat - range,
               [Op.lte]: parseFloat(lat) + range

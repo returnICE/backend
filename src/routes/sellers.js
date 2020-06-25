@@ -18,6 +18,7 @@ var Customer = db.Customer
 var Campaign = db.Campaign
 var CampaignLog = db.CampaignLog
 var Contract = db.Contract
+var SubedItem = db.SubedItem
 
 var serviceAccount = require('../config/swcapston-firebase-adminsdk.json')
 firebase.initializeApp({
@@ -132,8 +133,8 @@ router.get('/customer', (req, res) => {
           autopay: s.autoPay
         })
       }
+      res.json({ success: true, data: customerData })
     })
-    res.json({ success: true, data: customerData })
   })
 })
 
@@ -231,11 +232,10 @@ router.delete('/product/sub/:subId', function (req, res) {
   jwt.verify(token, process.env.JWT_KEY, function (err, decoded) {
     if (err) return res.json({ success: false, err })
     else {
-      SubItem.destroy({ where: { sellerId: decoded.sellerId, subId: req.params.subId } })
-        .then(() => {
-          checkSubPrice(decoded.sellerId)
-          return res.json({ success: true })
-        })
+      var subId = req.params.subId
+      var autoPay = 0
+      SubedItem.update({ autoPay }, { where: {subId: subId}})
+        .then(() => { return res.json({ success: true }) })
         .catch((err) => { return res.json({ success: false, err }) })
     }
   })

@@ -1,12 +1,16 @@
 ﻿# node-env-init
  
+## Project 요약
+
+[READ ME!](https://github.com/returnICE/README/blob/main/README.md)
+ 
  ## 초기세팅
  
  .env파일 생성
  ```
-AWS_KEY= "AKIAQYGRQI7U5BB6KLN4";
-AWS_SECRET= "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";
-JWT_KEY='abcd'
+AWS_KEY= ;
+AWS_SECRET= ;
+JWT_KEY=
 ```
  
 ## 명령어 
